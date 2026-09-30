@@ -22,6 +22,17 @@ class Arm:
 
 
 @dataclass(frozen=True)
+class Scenario:
+    """One benchmark scenario: public prompt, private criteria, deterministic post-checks."""
+
+    id: str
+    family: str  # plan | debug | build
+    prompt_path: str
+    criteria_path: str
+    post_checks: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class TrialResult:
     """One trial's captured output: CLI JSON, artifact metrics, verdict."""
 

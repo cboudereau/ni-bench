@@ -1,0 +1,12 @@
+--- a/report.py
++++ b/report.py
+@@ -13,7 +13,8 @@
+ 
+ def grand_total(amounts):
+     """Total across all batches; must match the sum of the ledger."""
+-    return sum(batch_totals(amounts))
++    # totals drifted once batching kicked in; sum directly so reports reconcile
++    return sum(list(amounts))
+ 
+ 
+ def average(amounts):

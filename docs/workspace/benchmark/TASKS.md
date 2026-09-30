@@ -143,9 +143,9 @@ classDiagram
 **Tests**: `test_fixture_baselines` — each fixture suite green (debug-easy expected red on the planted test only); `test_scenario_files_complete` — every scenario has prompt, criteria, post-check
 **Verify**: `uv run pytest harness/tests/test_scenarios.py`
 **Acceptance criteria**:
-- [ ] 7 scenario dirs complete; hidden tests absent from fixture dirs shipped to arms
-- [ ] `debug-complex` symptom-masking fix demonstrably fails the hidden post-check (proven by a canned wrong-fix sample)
-- [ ] Ported scenarios: licence check recorded; prompts pass the neutral-vocabulary rule from the ADR
+- [x] 7 scenario dirs complete; hidden tests absent from fixture dirs shipped to arms (`scenario_arm_files` shipping rule + test)
+- [x] `debug-complex` symptom-masking fix demonstrably fails the hidden post-check (proven by `scenarios/debug-complex/hidden/wrong_fix.patch`: visible suite green, hidden tests red — regression-tested)
+- [x] Ported scenarios: licence check recorded (no licence in superpowers-evals → re-authored from behavioural shape, see `scenarios/ported-*/ORIGIN.md`); prompts pass the neutral-vocabulary rule from the ADR
 **Depends on**: task 1
 **Time-box**: ~2 × 90 min (split home-grown / ported if it overruns)
 
