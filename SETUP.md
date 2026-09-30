@@ -13,21 +13,31 @@ Benchmark harness comparing Claude Code plugins (baseline, openspec, superpowers
 
 The arms, judge, and simulator authenticate through a single variable in `.env` (gitignored, never baked into images).
 
-Subscription token (bills your Claude plan). `claude setup-token` is interactive — do not wrap it in command substitution or pipes; that hides its prompts and hangs. Two steps:
+Option A — subscription token (bills your Claude plan). `claude setup-token` is interactive: never wrap it in command substitution or pipes, its prompts get captured and the command hangs.
+
+1. Generate the token:
+   ```bash
+   claude setup-token
+   ```
+2. A browser window opens. Approve the authorisation, copy the code shown, and paste it back into the terminal when prompted.
+3. The command prints a long-lived token starting with `sk-ant-oat01-`. Copy it.
+4. Write the `.env` file at the repo root (replace the placeholder with your token):
+   ```bash
+   cd <repo-root>
+   printf 'CLAUDE_CODE_OAUTH_TOKEN=%s\n' 'sk-ant-oat01-PASTE-HERE' > .env
+   chmod 600 .env
+   ```
+5. Verify — must print `1`:
+   ```bash
+   grep -c 'sk-ant-oat01' .env
+   ```
+
+Option B — Console API key (pay per token):
 
 ```bash
-claude setup-token
-# browser opens; approve, paste the code back; the command prints sk-ant-oat01-...
-```
-
-```bash
-cd <repo-root> && printf 'CLAUDE_CODE_OAUTH_TOKEN=%s\n' 'sk-ant-oat01-PASTE-HERE' > .env && chmod 600 .env
-```
-
-Console API key alternative (pay per token):
-
-```bash
-printf 'ANTHROPIC_API_KEY=%s\n' 'sk-ant-api...' > .env && chmod 600 .env
+cd <repo-root>
+printf 'ANTHROPIC_API_KEY=%s\n' 'sk-ant-api...' > .env
+chmod 600 .env
 ```
 
 Keep the token out of shared terminals and transcripts. Rotate it after the benchmark if the machine is shared.
