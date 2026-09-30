@@ -1,0 +1,10 @@
+# Common base for all arm images and the harness service (isolation-docker-compose ADR).
+# No credential ARG/ENV: the key reaches containers only via compose env_file.
+FROM node:22
+
+# pinned CLI; bump requires rebuilding every arm
+RUN npm install -g @anthropic-ai/claude-code@2.1.285
+
+# throwaway HOME is mounted per trial by the runner
+USER node
+WORKDIR /work

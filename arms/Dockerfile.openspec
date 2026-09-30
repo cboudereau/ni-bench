@@ -1,0 +1,3 @@
+# openspec arm
+FROM ni-bench-base
+#TODO(agt) task 2: npm install -g @fission-ai/openspec (pinned); openspec init runs per trial

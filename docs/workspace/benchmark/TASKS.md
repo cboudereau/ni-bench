@@ -112,8 +112,8 @@ classDiagram
 **Tests**: `test_result_schema_roundtrip` — TrialResult serialises/deserialises losslessly; `test_arm_registry_lists_four_arms`
 **Verify**: `uv run pytest && uv run ruff check harness/ && docker compose config -q`
 **Acceptance criteria**:
-- [ ] `docker build` of base image succeeds with pinned `@anthropic-ai/claude-code` version
-- [ ] `uv run pytest` green; `.gitignore` covers `results/`, `.env`
+- [x] `docker build` of base image succeeds with pinned `@anthropic-ai/claude-code` version
+- [x] `uv run pytest` green; `.gitignore` covers `results/`, `.env`
 **Depends on**: (none)
 **Time-box**: ~60 min
 
