@@ -82,6 +82,18 @@ else
   say "FAIL: OPENSPEC_TELEMETRY not 0"
   fail=1
 fi
+# postcheck runtime: pytest must exist in the shared base image - the harness
+# service runs the test-based postchecks and the arms run the fixture suites
+# (missing pytest silently failed every test-based postcheck in the first
+# full matrix)
+for svc in harness baseline; do
+  if run_in "$svc" python3 -m pytest --version >/dev/null; then
+    say "OK: $svc has pytest for fixture suites/postchecks"
+  else
+    say "FAIL: $svc lacks pytest (postchecks/fixture suites cannot run)"
+    fail=1
+  fi
+done
 # ni terse seed: entrypoint must write `full` before claude launches (verbosity-policy ADR)
 if [ "$(run_in ni cat /home/node/.claude/ni/terse)" = "full" ]; then
   say "OK: ni terse level seeded to full"

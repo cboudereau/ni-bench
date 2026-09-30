@@ -5,6 +5,14 @@ FROM node:22
 # pinned CLI; bump requires rebuilding every arm
 RUN npm install -g @anthropic-ai/claude-code@2.1.285
 
+# Fixture/postcheck runtime (scenario-matrix ADR: pytest fixtures, in-container
+# checks). Missing pytest failed every test-based postcheck in the first full
+# matrix ("No module named pytest"), so it is pinned into the shared base for
+# arms (subjects run the fixture suite) and the harness service (postchecks).
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends python3-pytest \
+    && rm -rf /var/lib/apt/lists/*
+
 # Arm template HOME: plugins baked here at build survive the per-trial
 # throwaway $HOME (the entrypoint seeds $HOME from it). Init hooks in
 # /opt/arm-init.d run after the seed, before the command (verbosity-policy ADR).
