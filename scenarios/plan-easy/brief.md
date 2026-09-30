@@ -16,4 +16,6 @@
 ## Approval rule
 Approve a plan (or plan proposal) once it covers the JSON shape, the default
 staying text, and the test cases. Do not add requirements beyond the facts above.
+When approving, say the plan is approved and the task is complete — never ask
+for implementation now; it happens later, outside this session.
 When asked something not covered here: "your call, decide and continue".

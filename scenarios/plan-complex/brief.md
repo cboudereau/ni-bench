@@ -18,5 +18,7 @@
 ## Approval rule
 Approve a plan (or plan proposal) once it makes the persistence decision and the
 contract-versioning decision explicitly and covers rate-limit/retry handling.
-Do not add requirements beyond the facts above. When asked something not covered
+Do not add requirements beyond the facts above. When approving, say the plan is
+approved and the task is complete — never ask for implementation now; it happens
+later, outside this session. When asked something not covered
 here: "your call, decide and continue".

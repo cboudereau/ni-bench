@@ -17,6 +17,7 @@ from harness.judge import (
     JUDGE_QUALITY_FLOOR,
     combine_verdict,
     judge_command,
+    judge_results,
     judge_trial,
 )
 from harness.models import JudgeScore, TrialResult, Verdict
@@ -301,3 +302,42 @@ def test_judge_command_runs_in_harness_service_with_fixed_model(tmp_path):
     assert "harness" in cmd
     assert cmd[cmd.index("--model") + 1] == JUDGE_MODEL == "claude-sonnet-5-5"
     assert cmd[cmd.index("-p") + 1] == "blinded input"
+
+
+# --- judge_results discovery (task 7 wiring) -------------------------------
+
+
+def test_judge_results_judges_every_unjudged_trial(tmp_path):
+    trial_a = make_trial_dir(tmp_path)
+    trial_b = make_trial_dir(tmp_path, arm="baseline")
+    ex = ScriptedExecutor(
+        [
+            ExecResult(0, judge_cli(GOOD_SCORE)),
+            ExecResult(0, judge_cli(GOOD_SCORE)),
+        ]
+    )
+    judged = judge_results(tmp_path, executor=ex)
+    assert sorted(judged) == sorted([trial_a, trial_b])
+    assert read_result(trial_a)["judge"] is not None
+    assert read_result(trial_b)["judge"] is not None
+
+
+def test_judge_results_skips_already_judged_unless_forced(tmp_path):
+    trial = make_trial_dir(tmp_path)
+    judge_trial(trial, executor=ScriptedExecutor([ExecResult(0, judge_cli(GOOD_SCORE))]))
+    assert judge_results(tmp_path, executor=ScriptedExecutor([])) == []
+    ex = ScriptedExecutor([ExecResult(0, judge_cli(GOOD_SCORE))])
+    assert judge_results(tmp_path, executor=ex, force=True) == [trial]
+
+
+def test_judge_trial_mounts_absolute_home_from_relative_trial_dir(tmp_path, monkeypatch):
+    # smoke-run infra bug (task 7): judge.sh passes a relative results dir and
+    # docker -v rejects relative host paths ("invalid characters for a local
+    # volume name"). The judge must resolve the trial dir before mounting.
+    make_trial_dir(tmp_path)
+    monkeypatch.chdir(tmp_path)
+    ex = ScriptedExecutor([ExecResult(0, judge_cli(GOOD_SCORE))])
+    judge_trial(Path("plan-easy/ni/ni-bench-trial-01"), executor=ex)
+    cmd = ex.calls[0]
+    volume = cmd[cmd.index("-v") + 1]
+    assert volume.split(":")[0].startswith("/"), volume

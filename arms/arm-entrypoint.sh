@@ -5,8 +5,13 @@
 set -euo pipefail
 
 TEMPLATE=/opt/arm-home
-if [ -d "$TEMPLATE" ] && [ "$HOME" != "$TEMPLATE" ]; then
+# Seed once per trial HOME: the resume loop reuses the same bind-mounted HOME
+# across containers, and re-copying fails on the read-only git pack files the
+# first copy created (task 7 smoke run) - and would clobber session state.
+SEEDED="$HOME/.arm-home-seeded"
+if [ -d "$TEMPLATE" ] && [ "$HOME" != "$TEMPLATE" ] && [ ! -e "$SEEDED" ]; then
   cp -a "$TEMPLATE/." "$HOME/"
+  touch "$SEEDED"
 fi
 
 for hook in /opt/arm-init.d/*.sh; do

@@ -150,6 +150,34 @@ def _load_artifacts(trial_dir: Path, plan_files: list[str]) -> dict[str, str]:
     return artifacts
 
 
+def find_trial_dirs(results_root: Path) -> list[Path]:
+    """Trial dirs = scenario/arm/trial holding a result.json (runner layout)."""
+    return sorted(p.parent for p in results_root.glob("*/*/*/result.json"))
+
+
+def judge_results(
+    results_root: Path | str,
+    *,
+    executor: Executor = default_executor,
+    model: str = JUDGE_MODEL,
+    force: bool = False,
+) -> list[Path]:
+    """Judge every saved trial under ``results_root`` (task 7 wiring).
+
+    Already-judged trials (``judge`` block in result.json) are skipped unless
+    ``force`` — re-judging respends real API budget, so it is opt-in only.
+    """
+    results_root = Path(results_root)
+    judged: list[Path] = []
+    for trial_dir in find_trial_dirs(results_root):
+        data = json.loads((trial_dir / "result.json").read_text(encoding="utf-8"))
+        if data.get("judge") is not None and not force:  # to_dict emits judge: null
+            continue
+        judge_trial(trial_dir, executor=executor, model=model)
+        judged.append(trial_dir)
+    return judged
+
+
 def judge_trial(
     trial_dir: Path | str,
     *,
@@ -158,7 +186,8 @@ def judge_trial(
     timeout_s: float = JUDGE_TIMEOUT_S,
 ) -> JudgeScore | None:
     """Judge one saved trial; writes judge/{input.txt,output.json}, updates result.json."""
-    trial_dir = Path(trial_dir)
+    # resolve() because docker -v rejects relative host paths (smoke-run fix)
+    trial_dir = Path(trial_dir).resolve()
     data = json.loads((trial_dir / "result.json").read_text(encoding="utf-8"))
     sdir = scenario_dir(data["scenario"])
     judge_input = assemble_judge_input(
@@ -230,3 +259,31 @@ def judge_trial(
         json.dumps(data, indent=2), encoding="utf-8"
     )
     return score
+
+
+def main(argv: list[str] | None = None) -> int:
+    """CLI: ``python -m harness.judge [results_dir] [--force]`` (scripts/judge.sh)."""
+    import argparse
+
+    parser = argparse.ArgumentParser(prog="harness.judge")
+    parser.add_argument("results", nargs="?", default="results")
+    parser.add_argument("--force", action="store_true", help="re-judge judged trials")
+    args = parser.parse_args(argv)
+    judged = judge_results(Path(args.results), force=args.force)
+    for trial_dir in judged:
+        data = json.loads((trial_dir / "result.json").read_text(encoding="utf-8"))
+        judge = data.get("judge", {})
+        print(
+            f"{trial_dir}: verdict={data.get('verdict')} "
+            f"plan_quality={judge.get('plan_quality')} "
+            f"verbosity={judge.get('verbosity_score')} "
+            f"judge_cost={judge.get('cost_usd', 0.0):.4f}"
+        )
+    print(f"judged {len(judged)} trial(s)")
+    return 0
+
+
+if __name__ == "__main__":
+    import sys
+
+    sys.exit(main())

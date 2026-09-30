@@ -225,3 +225,24 @@ def test_matrix_json_records_n_and_date(tmp_path):
     marker = json.loads((tmp_path / "matrix.json").read_text())
     assert marker["n"] == 1
     assert re.fullmatch(r"\d{4}-\d{2}-\d{2}", marker["date"])
+
+
+def test_plan_artifacts_outside_arm_glob_still_captured(tmp_path):
+    # smoke-run measurement gap (task 7): 3 of 4 arms wrote the plan at the
+    # workspace root, outside their conventional glob, yielding plan_words=0
+    # (which the min/value formula would score 100) and an artifact-less judge
+    # input. Changed markdown files are captured whatever the glob says.
+    from harness.arms import ARMS
+
+    ni_arm = next(a for a in ARMS if a.artifact_glob == "docs/workspace/**/*.md")
+    trial_dir = tmp_path / "plan-easy" / ni_arm.name / "t1"
+
+    def write_plan(_cmd):
+        (trial_dir / "workspace" / "PLAN.md").write_text("plan of five words here\n")
+
+    ex = Scripted(subject=[cli_json(COMPLETION)], on_subject=write_plan)
+    run_trial(ni_arm, PLAN_EASY, "t1", results_root=tmp_path, executor=ex)
+
+    saved = json.loads((trial_dir / "result.json").read_text())
+    assert saved["artifact_metrics"]["plan_files"] == ["PLAN.md"]
+    assert saved["artifact_metrics"]["plan_words"] == 5

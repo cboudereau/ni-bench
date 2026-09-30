@@ -42,19 +42,27 @@ _APPROVAL = re.compile(
 def needs_user_reply(final_message: str) -> bool:
     """Heuristic: does the subject's final message await the user?
 
-    True for an unanswered question headed at the user (final paragraph ends
-    with a question mark) or an explicit approval request / plan-mode gate.
-    A question answered in the same breath (rhetorical) does not count.
-    Single function on purpose - calibrated and frozen in task 7.
+    True for an explicit approval request / plan-mode gate, or any LINE ending
+    with a question mark in the last three paragraphs - line-level because the
+    smoke run showed questions heading a paragraph of option bullets
+    ("Which execution approach do you want?\\n- option A\\n- option B") followed
+    by a recommendation. A question answered in the same breath (rhetorical,
+    "Open question: X. The plan says no.") does not end a line with "?" and
+    does not count. Single function on purpose - calibrated on the task 7
+    smoke run and frozen.
     """
     text = (final_message or "").strip()
     if not text:
         return False
     paragraphs = [p.strip() for p in re.split(r"\n\s*\n", text) if p.strip()]
-    tail = "\n".join(paragraphs[-2:])
-    if _APPROVAL.search(tail):
+    tail_paragraphs = paragraphs[-3:]
+    if _APPROVAL.search("\n".join(tail_paragraphs)):
         return True
-    return paragraphs[-1].endswith("?")
+    return any(
+        line.rstrip().endswith("?")
+        for paragraph in tail_paragraphs
+        for line in paragraph.splitlines()
+    )
 
 
 def build_simulator_prompt(brief: str, final_message: str) -> str:

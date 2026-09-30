@@ -202,8 +202,8 @@ classDiagram
 **Tests**: live checks, not unit tests — this task validates integration
 **Verify**: `./scripts/run.sh smoke && ./scripts/check-isolation.sh && ./scripts/check-blinding.sh && ./scripts/cost-check.sh`
 **Acceptance criteria**:
-- [ ] 4 trial dirs with complete `result.json`, zero indeterminate (or causes fixed)
-- [ ] Smoke section of REPORT.md renders
+- [x] 4 trial dirs with complete `result.json`, zero indeterminate (or causes fixed) — final run all pass; 3 infra bugs fixed and re-run, see [CALIBRATION.md](./CALIBRATION.md)
+- [x] Smoke section of REPORT.md renders — deterministic double-render verified
 **Depends on**: task 6
 **Time-box**: ~60 min
 

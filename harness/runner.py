@@ -87,9 +87,24 @@ def postcheck_command(scenario_id: str, workspace_dir: Path | str) -> list[str]:
     return cmd
 
 
-def artifact_metrics(workspace: Path, artifact_glob: str) -> dict:
-    """Plan word count and file list per the arm's artifact glob (kpi-scoring ADR)."""
-    files = [p for p in sorted(workspace.glob(artifact_glob)) if p.is_file()]
+def artifact_metrics(
+    workspace: Path, artifact_glob: str, changed: Sequence[str] = ()
+) -> dict:
+    """Plan word count and file list per the arm's artifact glob (kpi-scoring ADR).
+
+    Union with the trial's changed markdown files: the task 7 smoke run showed
+    arms writing the plan at the workspace root, outside their conventional
+    glob, which zeroed plan_words (scored 100 by min/value) and starved the
+    judge of artifacts. Applied identically to every arm.
+    """
+    produced = [
+        workspace / rel
+        for rel in changed
+        if rel.endswith(".md") and (workspace / rel).is_file()
+    ]
+    files = sorted(
+        {p for p in workspace.glob(artifact_glob) if p.is_file()} | set(produced)
+    )
     words = sum(
         len(p.read_text(encoding="utf-8", errors="replace").split()) for p in files
     )
@@ -267,7 +282,7 @@ def run_trial(
     )
     changed = _git(workspace, "diff", "--cached", "--name-only").split()
 
-    metrics = artifact_metrics(workspace, arm.artifact_glob)
+    metrics = artifact_metrics(workspace, arm.artifact_glob, changed)
     metrics["files_changed"] = len(changed)
 
     postcheck: dict | None = None

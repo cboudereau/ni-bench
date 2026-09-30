@@ -41,6 +41,28 @@ class TestNeedsUserReply:
     def test_empty_message_needs_no_reply(self):
         assert not needs_user_reply("")
 
+    def test_question_heading_option_bullets_needs_reply(self):
+        # smoke-run false continue (task 7 calibration): the question line
+        # heads a paragraph whose option bullets follow on single newlines,
+        # then a recommendation paragraph - the subject still awaits a choice.
+        assert needs_user_reply(
+            "Plan written to docs/plans/plan.md.\n\n"
+            "Which execution approach do you want?\n"
+            "- **Subagent-driven:** a fresh subagent implements each task.\n"
+            "- **Native:** I implement everything in this session.\n\n"
+            "I recommend native. There are only two small tasks in one file."
+        )
+
+    def test_self_answered_open_question_needs_no_reply(self):
+        # smoke-run true continue: the open question is answered in the same
+        # breath ("The plan says no"), so the trial proceeds to grading.
+        assert not needs_user_reply(
+            "Plan written to PLAN.md.\n\n"
+            "- **Tests:** nine cases are listed.\n"
+            "- **Open question:** whether errors should also appear in the "
+            "JSON. The plan says no, to keep current behaviour."
+        )
+
 
 def test_build_simulator_prompt_embeds_brief_rules_and_message():
     prompt = build_simulator_prompt("BRIEF-TEXT", "FINAL-MESSAGE")
