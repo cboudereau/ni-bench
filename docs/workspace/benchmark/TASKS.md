@@ -160,8 +160,8 @@ classDiagram
 **Tests**: `test_trial_dir_layout`, `test_retry_then_indeterminate` (mocked CLI failure), `test_timeout_kills_and_marks_indeterminate` (mocked), `test_cost_guard_stops_matrix`, `test_resume_loop_stops_at_turn_cap` (mocked simulator), `test_simulator_tokens_excluded_from_subject_kpis`
 **Verify**: `uv run pytest harness/tests/test_runner.py`
 **Acceptance criteria**:
-- [ ] `result.json` contains tokens, cost, duration, turns, `user_turns`, artifact metrics for a mocked run
-- [ ] No network or API needed for runner unit tests (CLI and simulator mocked)
+- [x] `result.json` contains tokens, cost, duration, turns, `user_turns`, artifact metrics for a mocked run
+- [x] No network or API needed for runner unit tests (CLI and simulator mocked)
 **Depends on**: tasks 2, 3
 **Time-box**: ~90 min
 
