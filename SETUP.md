@@ -13,16 +13,15 @@ Benchmark harness comparing Claude Code plugins (baseline, openspec, superpowers
 
 The arms, judge, and simulator authenticate through a single variable in `.env` (gitignored, never baked into images).
 
-Subscription token (bills your Claude plan) — one-liner, browser opens for the OAuth approval:
+Subscription token (bills your Claude plan). `claude setup-token` is interactive — do not wrap it in command substitution or pipes; that hides its prompts and hangs. Two steps:
 
 ```bash
-cd <repo-root> && printf 'CLAUDE_CODE_OAUTH_TOKEN=%s\n' "$(claude setup-token | grep -oE 'sk-ant-oat01-[A-Za-z0-9_-]+' | tail -1)" > .env && chmod 600 .env && grep -c 'sk-ant-oat01' .env
+claude setup-token
+# browser opens; approve, paste the code back; the command prints sk-ant-oat01-...
 ```
 
-Final output `1` means the token was written; `0` means capture failed — run `claude setup-token` alone and paste manually:
-
 ```bash
-printf 'CLAUDE_CODE_OAUTH_TOKEN=%s\n' 'sk-ant-oat01-PASTE-HERE' > .env && chmod 600 .env
+cd <repo-root> && printf 'CLAUDE_CODE_OAUTH_TOKEN=%s\n' 'sk-ant-oat01-PASTE-HERE' > .env && chmod 600 .env
 ```
 
 Console API key alternative (pay per token):
