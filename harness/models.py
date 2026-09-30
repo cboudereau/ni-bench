@@ -33,6 +33,30 @@ class Scenario:
 
 
 @dataclass(frozen=True)
+class JudgeScore:
+    """Blinded judge scores on 0-100 scales (FR5, blind-llm-judge ADR)."""
+
+    plan_quality: int
+    verbosity_score: int
+    outcome_notes: str = ""
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "plan_quality": self.plan_quality,
+            "verbosity_score": self.verbosity_score,
+            "outcome_notes": self.outcome_notes,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "JudgeScore":
+        return cls(
+            plan_quality=data["plan_quality"],
+            verbosity_score=data["verbosity_score"],
+            outcome_notes=data.get("outcome_notes", ""),
+        )
+
+
+@dataclass(frozen=True)
 class TrialResult:
     """One trial's captured output (FR4).
 
@@ -51,6 +75,7 @@ class TrialResult:
     user_turns: int = 0
     simulator: dict[str, Any] = field(default_factory=dict)
     postcheck: dict[str, Any] | None = None
+    judge: dict[str, Any] | None = None  # JudgeScore fields + model, cost (task 5)
     total_cost_usd: float = 0.0
     error: str | None = None
 
@@ -64,6 +89,7 @@ class TrialResult:
             "user_turns": self.user_turns,
             "simulator": self.simulator,
             "postcheck": self.postcheck,
+            "judge": self.judge,
             "total_cost_usd": self.total_cost_usd,
             "verdict": self.verdict.value,
             "error": self.error,
@@ -81,6 +107,7 @@ class TrialResult:
             user_turns=data.get("user_turns", 0),
             simulator=data.get("simulator", {}),
             postcheck=data.get("postcheck"),
+            judge=data.get("judge"),
             total_cost_usd=data.get("total_cost_usd", 0.0),
             error=data.get("error"),
         )

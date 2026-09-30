@@ -174,8 +174,8 @@ classDiagram
 **Tests**: `test_blind_strips_all_arm_identifiers` (adversarial samples incl. paths like `openspec/changes/`), `test_postcheck_fail_overrides_judge_pass`, `test_judge_parse_retry_then_indeterminate` (mocked)
 **Verify**: `uv run pytest harness/tests/test_judge.py && ./scripts/check-blinding.sh`
 **Acceptance criteria**:
-- [ ] Judge returns strict JSON scores on a canned blinded sample
-- [ ] Verdict logic table covered by tests for all pass/fail/indeterminate combinations
+- [x] Judge returns strict JSON scores on a canned blinded sample
+- [x] Verdict logic table covered by tests for all pass/fail/indeterminate combinations
 **Depends on**: task 4
 **Time-box**: ~90 min
 
