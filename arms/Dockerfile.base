@@ -5,6 +5,14 @@ FROM node:22
 # pinned CLI; bump requires rebuilding every arm
 RUN npm install -g @anthropic-ai/claude-code@2.1.285
 
+# Arm template HOME: plugins baked here at build survive the per-trial
+# throwaway $HOME (the entrypoint seeds $HOME from it). Init hooks in
+# /opt/arm-init.d run after the seed, before the command (verbosity-policy ADR).
+RUN mkdir -p /opt/arm-home /opt/arm-init.d && chown -R node:node /opt/arm-home
+COPY --chmod=755 arm-entrypoint.sh /usr/local/bin/arm-entrypoint.sh
+
 # throwaway HOME is mounted per trial by the runner
 USER node
 WORKDIR /work
+ENTRYPOINT ["arm-entrypoint.sh"]
+CMD ["bash"]

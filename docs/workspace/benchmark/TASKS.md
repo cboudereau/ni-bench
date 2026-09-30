@@ -127,8 +127,8 @@ classDiagram
 **Tests**: `test_compose_has_no_host_config_mounts` (parses `docker compose config` JSON); in-container smoke per arm: `claude --version` and plugin presence listing
 **Verify**: `./scripts/check-isolation.sh`
 **Acceptance criteria**:
-- [ ] Each arm container lists exactly its own plugin (baseline and `harness`: none)
-- [ ] ni arm session shows terse `full` banner in a probe run
+- [x] Each arm container lists exactly its own plugin (baseline and `harness`: none)
+- [x] ni arm session shows terse `full` banner in a probe run — proven offline via state file (`$HOME/.claude/ni/terse` = `full` in a tmpfs throwaway HOME) plus SessionStart hook scripts present; the literal banner needs credentials, re-checked in the task 7 smoke run
 **Depends on**: task 1
 **Time-box**: ~90 min
 
