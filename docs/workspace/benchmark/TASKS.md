@@ -188,8 +188,8 @@ classDiagram
 **Tests**: `test_score_formulas_exact` (golden values), `test_plan_words_quality_floor`, `test_render_deterministic` (two renders byte-identical), `test_indeterminate_excluded_from_median`
 **Verify**: `uv run pytest harness/tests/test_report.py`
 **Acceptance criteria**:
-- [ ] Golden-file test: canned results render the expected table exactly
-- [ ] NFR3 diff check green
+- [x] Golden-file test: canned results render the expected table exactly (`harness/tests/data/report/`)
+- [x] NFR3 diff check green (double `./scripts/report.sh` on the canned results, byte-identical)
 **Depends on**: task 5
 **Time-box**: ~75 min
 

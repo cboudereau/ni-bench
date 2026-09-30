@@ -1,4 +1,4 @@
-results/
+/results/
 .env
 .venv/
 __pycache__/

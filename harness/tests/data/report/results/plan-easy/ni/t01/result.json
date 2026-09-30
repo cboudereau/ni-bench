@@ -1,0 +1,47 @@
+{
+  "arm": "ni",
+  "scenario": "plan-easy",
+  "trial_id": "t01",
+  "cli_json": {
+    "total_cost_usd": 0.4,
+    "duration_ms": 80000,
+    "num_turns": 8,
+    "usage": {
+      "input_tokens": 7000,
+      "output_tokens": 3000
+    },
+    "subject_invocations": 1,
+    "session_id": "sess-canned"
+  },
+  "artifact_metrics": {
+    "plan_words": 500,
+    "plan_files": [
+      "docs/workspace/plan/TASKS.md"
+    ],
+    "files_changed": 1
+  },
+  "user_turns": 1,
+  "simulator": {
+    "total_cost_usd": 0.01,
+    "usage": {
+      "input_tokens": 10,
+      "output_tokens": 5
+    },
+    "calls": 1
+  },
+  "postcheck": {
+    "ok": true,
+    "returncode": 0
+  },
+  "judge": {
+    "plan_quality": 85,
+    "verbosity_score": 90,
+    "outcome_notes": "canned",
+    "model": "claude-sonnet-5-5",
+    "cost_usd": 0.04,
+    "indeterminate": false
+  },
+  "total_cost_usd": 0.45,
+  "verdict": "pass",
+  "error": null
+}

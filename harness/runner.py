@@ -21,6 +21,7 @@ import subprocess
 import time
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 
 from harness.cost_guard import CostGuard, threshold_for
@@ -366,6 +367,10 @@ def run_matrix(
                 "spent_usd": guard.spent_usd,
                 "threshold_usd": guard.threshold_usd,
                 "trials": len(trials),
+                "n": n,
+                # run date recorded once here; the report reads it from
+                # matrix.json, never the wall clock (NFR3)
+                "date": datetime.now(UTC).date().isoformat(),
             },
             indent=2,
         ),

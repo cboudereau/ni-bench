@@ -1,0 +1,45 @@
+{
+  "arm": "ni",
+  "scenario": "debug-easy",
+  "trial_id": "t02",
+  "cli_json": {
+    "total_cost_usd": 0.6,
+    "duration_ms": 90000,
+    "num_turns": 9,
+    "usage": {
+      "input_tokens": 25000,
+      "output_tokens": 5000
+    },
+    "subject_invocations": 1,
+    "session_id": "sess-canned"
+  },
+  "artifact_metrics": {
+    "plan_words": 0,
+    "plan_files": [],
+    "files_changed": 1
+  },
+  "user_turns": 1,
+  "simulator": {
+    "total_cost_usd": 0.01,
+    "usage": {
+      "input_tokens": 10,
+      "output_tokens": 5
+    },
+    "calls": 1
+  },
+  "postcheck": {
+    "ok": false,
+    "returncode": 1
+  },
+  "judge": {
+    "plan_quality": 80,
+    "verbosity_score": 90,
+    "outcome_notes": "canned",
+    "model": "claude-sonnet-5-5",
+    "cost_usd": 0.04,
+    "indeterminate": false
+  },
+  "total_cost_usd": 0.65,
+  "verdict": "fail",
+  "error": null
+}

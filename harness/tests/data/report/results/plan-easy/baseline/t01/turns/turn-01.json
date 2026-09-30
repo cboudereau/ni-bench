@@ -1,0 +1,11 @@
+{
+  "type": "result",
+  "result": "done",
+  "session_id": "sess-canned",
+  "modelUsage": {
+    "claude-opus-4-6": {
+      "inputTokens": 15000,
+      "outputTokens": 5000
+    }
+  }
+}

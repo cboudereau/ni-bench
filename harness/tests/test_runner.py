@@ -5,6 +5,7 @@ no docker, no credentials (task 4 acceptance criteria).
 """
 
 import json
+import re
 import subprocess
 
 import pytest
@@ -215,3 +216,12 @@ def test_matrix_completes_under_threshold(tmp_path):
     )
     assert matrix.partial is False
     assert len(matrix.trials) == len(ARMS)
+
+
+def test_matrix_json_records_n_and_date(tmp_path):
+    # the report header reads n and date from matrix.json, never the wall clock (NFR3)
+    ex = Scripted(default_subject=cli_json(COMPLETION, cost=0.05))
+    run_matrix(ARMS, [PLAN_EASY], 1, results_root=tmp_path, executor=ex, threshold_usd=50.0)
+    marker = json.loads((tmp_path / "matrix.json").read_text())
+    assert marker["n"] == 1
+    assert re.fullmatch(r"\d{4}-\d{2}-\d{2}", marker["date"])

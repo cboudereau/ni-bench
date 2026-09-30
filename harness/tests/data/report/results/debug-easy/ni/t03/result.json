@@ -1,0 +1,35 @@
+{
+  "arm": "ni",
+  "scenario": "debug-easy",
+  "trial_id": "t03",
+  "cli_json": {
+    "total_cost_usd": 0.1,
+    "duration_ms": 1200000,
+    "num_turns": 1,
+    "usage": {
+      "input_tokens": 999999,
+      "output_tokens": 0
+    },
+    "subject_invocations": 1,
+    "session_id": "sess-canned"
+  },
+  "artifact_metrics": {
+    "plan_words": 0,
+    "plan_files": [],
+    "files_changed": 1
+  },
+  "user_turns": 0,
+  "simulator": {
+    "total_cost_usd": 0.01,
+    "usage": {
+      "input_tokens": 10,
+      "output_tokens": 5
+    },
+    "calls": 0
+  },
+  "postcheck": null,
+  "judge": null,
+  "total_cost_usd": 0.15000000000000002,
+  "verdict": "indeterminate",
+  "error": "timeout: trial wall-clock budget exhausted"
+}
