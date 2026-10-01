@@ -131,9 +131,20 @@ def test_arm_prompt_falls_back_to_shared_prompt():
     # baseline is the control: no variant file, ever
     for sid in SCENARIO_IDS:
         assert arm_prompt_path(sid, "baseline") == scenario_dir(sid) / "prompt.md"
-    # non-plan scenarios have no variants for any arm
-    for arm in PLUGIN_ARMS:
-        assert arm_prompt_path("debug-easy", arm) == scenario_dir("debug-easy") / "prompt.md"
+    # openspec has no debug flow: debug scenarios fall back for it
+    for sid in ("debug-easy", "debug-complex", "ported-debug"):
+        assert arm_prompt_path(sid, "openspec") == scenario_dir(sid) / "prompt.md"
+
+
+def test_arm_prompt_prefers_variant_for_debug_and_build_families():
+    # explicit-flow scope extension: ni and superpowers on debug scenarios,
+    # ni, superpowers, and openspec on build scenarios
+    for sid in ("debug-easy", "debug-complex", "ported-debug"):
+        for arm in ("ni", "superpowers"):
+            assert arm_prompt_path(sid, arm) == scenario_dir(sid) / f"prompt-{arm}.md"
+    for sid in ("build-small", "ported-build"):
+        for arm in ("ni", "superpowers", "openspec"):
+            assert arm_prompt_path(sid, arm) == scenario_dir(sid) / f"prompt-{arm}.md"
 
 
 def test_arm_prompt_prefers_arm_variant_for_plan_family():
