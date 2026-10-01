@@ -186,14 +186,26 @@ def judge_results(
     as judged: it is retried on the next pass.
     """
     results_root = Path(results_root)
-    judged: list[Path] = []
+    pending: list[Path] = []
     for trial_dir in find_trial_dirs(results_root):
         data = json.loads((trial_dir / "result.json").read_text(encoding="utf-8"))
         prior = data.get("judge")  # to_dict emits judge: null when unjudged
         if prior is not None and not prior.get("indeterminate") and not force:
             continue
-        judge_trial(trial_dir, executor=executor, model=model)
+        pending.append(trial_dir)
+
+    judged: list[Path] = []
+    for i, trial_dir in enumerate(pending, 1):
+        score = judge_trial(trial_dir, executor=executor, model=model)
         judged.append(trial_dir)
+        cell = "/".join(trial_dir.parts[-3:])
+        verdict = (
+            f"hr={score.human_readability} ae={score.agent_executability}"
+            f" vs={score.verbosity_score}"
+            if score is not None
+            else "indeterminate"
+        )
+        print(f"[{i}/{len(pending)}] judge {cell}: {verdict}", flush=True)
     return judged
 
 

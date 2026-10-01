@@ -460,3 +460,12 @@ def test_judge_results_retries_indeterminate_judgments(tmp_path):
     assert judged == [trial]
     out = json.loads((trial / "result.json").read_text(encoding="utf-8"))
     assert out["judge"]["indeterminate"] is False
+
+
+def test_judge_results_prints_per_trial_progress(tmp_path, capsys):
+    make_trial_dir(tmp_path)
+    ex = ScriptedExecutor([ExecResult(0, judge_cli(GOOD_SCORE))])
+    judge_results(tmp_path, executor=ex)
+    out = capsys.readouterr().out
+    assert "[1/1] judge" in out
+    assert "hr=" in out and "ae=" in out
