@@ -17,6 +17,7 @@ Deliverables are per-run local artifacts (git-excluded): each run folder under .
 - [Per-plugin verbosity policy](adrs/verbosity-policy.md)
 - [Simulated user for multi-turn interaction](adrs/simulated-user.md)
 - [Explicit-flow follow-up track (per-arm prompt variants)](adrs/explicit-flow-track.md)
+- [Two-audience quality: split KPIs, dual judge scores, resumability](adrs/two-audience-quality.md) — proposed
 
 ## Audit
 
