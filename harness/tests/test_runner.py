@@ -264,6 +264,132 @@ def test_plan_artifacts_outside_arm_glob_still_captured(tmp_path):
     assert saved["artifact_metrics"]["plan_words"] == 5
 
 
+def test_artifact_metrics_split_by_audience(tmp_path):
+    # two-audience-quality ADR stage 1: plan_words counts the human layer,
+    # machine_words the machine layer, tooling scaffolding is excluded.
+    from harness.runner import artifact_metrics
+
+    ni_arm = next(a for a in ARMS if a.name == "ni")
+    workspace = tmp_path / "workspace"
+    (workspace / "docs/workspace/feat").mkdir(parents=True)
+    (workspace / ".claude/commands").mkdir(parents=True)
+    (workspace / "docs/workspace/feat/DESIGN.md").write_text(
+        "human design doc of six words", encoding="utf-8"
+    )
+    (workspace / "docs/workspace/feat/TASKS.md").write_text(
+        "machine task list", encoding="utf-8"
+    )
+    (workspace / ".claude/commands/go.md").write_text(
+        "tooling scaffolding never counted " * 10, encoding="utf-8"
+    )
+
+    metrics = artifact_metrics(
+        workspace,
+        ni_arm,
+        ["docs/workspace/feat/DESIGN.md", "docs/workspace/feat/TASKS.md",
+         ".claude/commands/go.md"],
+    )
+    assert metrics["plan_words"] == 6
+    assert metrics["machine_words"] == 3
+    assert metrics["plan_files"] == ["docs/workspace/feat/DESIGN.md"]
+    assert metrics["machine_files"] == ["docs/workspace/feat/TASKS.md"]
+
+
+def test_run_trial_records_machine_words(tmp_path):
+    ni_arm = next(a for a in ARMS if a.name == "ni")
+    trial_dir = tmp_path / "plan-easy" / ni_arm.name / "t1"
+
+    def write_artifacts(_cmd):
+        d = trial_dir / "workspace" / "docs" / "workspace" / "feat"
+        d.mkdir(parents=True, exist_ok=True)
+        (d / "DESIGN.md").write_text("design words here\n", encoding="utf-8")
+        (d / "TASKS.md").write_text("one two three four\n", encoding="utf-8")
+
+    ex = Scripted(subject=[cli_json(COMPLETION)], on_subject=write_artifacts)
+    run_trial(ni_arm, PLAN_EASY, "t1", results_root=tmp_path, executor=ex)
+
+    saved = json.loads((trial_dir / "result.json").read_text())
+    am = saved["artifact_metrics"]
+    assert am["plan_words"] == 3
+    assert am["machine_words"] == 4
+    assert am["plan_files"] == ["docs/workspace/feat/DESIGN.md"]
+    assert am["machine_files"] == ["docs/workspace/feat/TASKS.md"]
+
+
+def test_recompute_artifact_metrics_offline_from_saved_trial(tmp_path):
+    # the saved trial dir (workspace + fixture.diff) is enough to recompute
+    # the split without re-running anything — used to fix old runs' KPIs.
+    from harness.runner import recompute_artifact_metrics
+
+    openspec_arm = next(a for a in ARMS if a.name == "openspec")
+    trial_dir = tmp_path / "plan-easy" / "openspec" / "t1"
+    workspace = trial_dir / "workspace"
+    (workspace / "openspec/changes/feat").mkdir(parents=True)
+    (workspace / ".claude/skills/s").mkdir(parents=True)
+    (workspace / "openspec/changes/feat/proposal.md").write_text(
+        "proposal of four words", encoding="utf-8"
+    )
+    (workspace / "openspec/changes/feat/tasks.md").write_text(
+        "task one\ntask two", encoding="utf-8"
+    )
+    (workspace / ".claude/skills/s/SKILL.md").write_text(
+        "init scaffolding " * 100, encoding="utf-8"
+    )
+    (workspace / "ROOT_NOTE.md").write_text("root note outside glob", encoding="utf-8")
+    # fixture.diff names the changed files, including the out-of-glob root note
+    trial_dir.mkdir(parents=True, exist_ok=True)
+    (trial_dir / "fixture.diff").write_text(
+        "diff --git a/ROOT_NOTE.md b/ROOT_NOTE.md\n"
+        "new file mode 100644\n"
+        "diff --git a/.claude/skills/s/SKILL.md b/.claude/skills/s/SKILL.md\n"
+        "new file mode 100644\n",
+        encoding="utf-8",
+    )
+
+    metrics = recompute_artifact_metrics(trial_dir, openspec_arm)
+    assert metrics["plan_words"] == 4 + 4  # proposal + root note, scaffolding excluded
+    assert metrics["machine_words"] == 4
+    assert metrics["plan_files"] == [
+        "ROOT_NOTE.md", "openspec/changes/feat/proposal.md",
+    ]
+    assert metrics["machine_files"] == ["openspec/changes/feat/tasks.md"]
+
+
+def test_recompute_cli_updates_result_json_in_place(tmp_path, capsys):
+    from harness.runner import main as runner_main
+
+    ni_arm = next(a for a in ARMS if a.name == "ni")
+    trial_dir = tmp_path / "plan-easy" / ni_arm.name / "t1"
+
+    def write_artifacts(_cmd):
+        d = trial_dir / "workspace" / "docs" / "workspace" / "feat"
+        d.mkdir(parents=True, exist_ok=True)
+        (d / "DESIGN.md").write_text("design words here\n", encoding="utf-8")
+        (d / "TASKS.md").write_text("one two three four\n", encoding="utf-8")
+
+    ex = Scripted(subject=[cli_json(COMPLETION)], on_subject=write_artifacts)
+    run_trial(ni_arm, PLAN_EASY, "t1", results_root=tmp_path, executor=ex)
+
+    # simulate a v1 result.json: collapsed metrics, no split
+    saved_path = trial_dir / "result.json"
+    data = json.loads(saved_path.read_text())
+    data["artifact_metrics"] = {
+        "plan_words": 7,
+        "plan_files": ["docs/workspace/feat/DESIGN.md", "docs/workspace/feat/TASKS.md"],
+        "files_changed": 2,
+    }
+    saved_path.write_text(json.dumps(data), encoding="utf-8")
+
+    assert runner_main(["recompute", str(tmp_path)]) == 0
+    out = json.loads(saved_path.read_text())
+    am = out["artifact_metrics"]
+    assert am["plan_words"] == 3
+    assert am["machine_words"] == 4
+    assert am["machine_files"] == ["docs/workspace/feat/TASKS.md"]
+    assert am["files_changed"] == 2  # preserved: not recomputable offline
+    assert "recomputed" in capsys.readouterr().out
+
+
 def test_existing_result_json_skips_trial(tmp_path):
     """Resume: a saved result.json returns as-is, no executor call."""
     from harness.arms import ARMS

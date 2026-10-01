@@ -26,27 +26,40 @@ JUDGE_TIMEOUT_S = 10 * 60  # grading budget, outside the trial clock
 # kpi-scoring ADR quality floor for plan_words.
 JUDGE_QUALITY_FLOOR = 50
 
+# Rubric v2 (two-audience-quality ADR): quality split by audience, with
+# family-specific definitions. Frozen after the calibration pass.
 RUBRIC = """\
 You are grading one anonymised coding-assistant trial for a benchmark.
 Plugin, arm, and tool identifiers have been redacted; ignore redaction tokens
 and neutral path prefixes and grade the content only.
 
-Grade the trial against the private acceptance criteria below:
-- plan_quality (0-100): completeness, testability, traceability, and task
-  actionability against the criteria; for debugging tasks, whether the root
-  cause is named before the fix.
+Grade the trial against the private acceptance criteria below. The produced
+artifacts serve two audiences; score each on its own merits:
+- human_readability (0-100): the human-facing layer.
+  For planning/build tasks: are the design documents, proposals, and decision
+  records complete, correct, and brief for the decisions they carry?
+  For debugging tasks: is the explanation for a human reader sound - root
+  cause named and correctly explained, fix justified?
+- agent_executability (0-100): the machine-facing layer.
+  For planning/build tasks: could a fresh agent with no session memory
+  execute or resume from the produced artifacts alone - self-contained
+  tasks, verify commands, progress tracking?
+  For debugging tasks: is there a verifiable process trace - reproduction
+  shown, root cause established before the fix, tests failing then passing?
 - verbosity_score (0-100): signal density of the produced text - 100 means
   every sentence carries information the task needs, 0 means mostly padding.
 - outcome_notes: one or two sentences on whether the trial achieved the task.
 
 Reply with a single strict JSON object and nothing else - no prose, no code
 fences:
-{"plan_quality": <int 0-100>, "verbosity_score": <int 0-100>, "outcome_notes": "<string>"}"""
+{"human_readability": <int 0-100>, "agent_executability": <int 0-100>, \
+"verbosity_score": <int 0-100>, "outcome_notes": "<string>"}"""
 
 FORMAT_REMINDER = (
     "REMINDER: your previous reply was not valid JSON. Reply with exactly one "
-    'strict JSON object {"plan_quality": <int 0-100>, "verbosity_score": '
-    '<int 0-100>, "outcome_notes": "<string>"} and nothing else.'
+    'strict JSON object {"human_readability": <int 0-100>, '
+    '"agent_executability": <int 0-100>, "verbosity_score": <int 0-100>, '
+    '"outcome_notes": "<string>"} and nothing else.'
 )
 
 
@@ -108,22 +121,23 @@ def judge_command(*, home_dir: Path | str, model: str = JUDGE_MODEL) -> list[str
 
 
 def parse_score(text: str) -> JudgeScore | None:
-    """Strict JSON -> JudgeScore; None on any shape or range violation."""
+    """Strict rubric-v2 JSON -> JudgeScore; None on any shape or range violation."""
     try:
         data = json.loads(text.strip())
     except json.JSONDecodeError:
         return None
     if not isinstance(data, dict):
         return None
-    plan_quality = data.get("plan_quality")
+    human_readability = data.get("human_readability")
+    agent_executability = data.get("agent_executability")
     verbosity_score = data.get("verbosity_score")
     notes = data.get("outcome_notes", "")
-    for value in (plan_quality, verbosity_score):
+    for value in (human_readability, agent_executability, verbosity_score):
         if isinstance(value, bool) or not isinstance(value, int) or not 0 <= value <= 100:
             return None
     if not isinstance(notes, str):
         return None
-    return JudgeScore(plan_quality, verbosity_score, notes)
+    return JudgeScore(human_readability, agent_executability, verbosity_score, notes)
 
 
 def _load_transcript(trial_dir: Path) -> str:
@@ -195,11 +209,18 @@ def judge_trial(
     trial_dir = Path(trial_dir).resolve()
     data = json.loads((trial_dir / "result.json").read_text(encoding="utf-8"))
     sdir = scenario_dir(data["scenario"])
+    # both layers reach the judge: plan_files (human) for readability,
+    # machine_files for executability (two-audience-quality ADR)
+    metrics = data["artifact_metrics"]
+    artifact_files = list(metrics.get("plan_files", [])) + [
+        f for f in metrics.get("machine_files", [])
+        if f not in metrics.get("plan_files", [])
+    ]
     judge_input = assemble_judge_input(
         (sdir / "prompt.md").read_text(encoding="utf-8"),
         (sdir / "criteria.md").read_text(encoding="utf-8"),
         _load_transcript(trial_dir),
-        _load_artifacts(trial_dir, data["artifact_metrics"].get("plan_files", [])),
+        _load_artifacts(trial_dir, artifact_files),
     )
 
     judge_dir = trial_dir / "judge"
@@ -251,7 +272,8 @@ def judge_trial(
 
     postcheck = data.get("postcheck")
     postcheck_ok = postcheck.get("ok") if postcheck else None
-    judge_ok = None if score is None else score.plan_quality >= JUDGE_QUALITY_FLOOR
+    # quality floor keys on the human layer (two-audience-quality ADR)
+    judge_ok = None if score is None else score.human_readability >= JUDGE_QUALITY_FLOOR
     verdict = combine_verdict(postcheck_ok, judge_ok, data.get("error"))
 
     judge_block: dict = score.to_dict() if score else {}
@@ -281,7 +303,8 @@ def main(argv: list[str] | None = None) -> int:
         judge = data.get("judge", {})
         print(
             f"{trial_dir}: verdict={data.get('verdict')} "
-            f"plan_quality={judge.get('plan_quality')} "
+            f"human_readability={judge.get('human_readability')} "
+            f"agent_executability={judge.get('agent_executability')} "
             f"verbosity={judge.get('verbosity_score')} "
             f"judge_cost={judge.get('cost_usd', 0.0):.4f}"
         )

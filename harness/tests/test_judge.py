@@ -158,7 +158,11 @@ def judge_cli(result_text: str, cost: float = 0.02) -> str:
     )
 
 
-GOOD_SCORE = '{"plan_quality": 82, "verbosity_score": 64, "outcome_notes": "solid plan"}'
+GOOD_SCORE = (
+    '{"human_readability": 82, "agent_executability": 71, '
+    '"verbosity_score": 64, "outcome_notes": "solid plan"}'
+)
+GOOD_JUDGE_SCORE = JudgeScore(82, 71, 64, "solid plan")
 
 
 class ScriptedExecutor:
@@ -238,7 +242,7 @@ def test_judge_returns_strict_json_scores_on_canned_blinded_sample(tmp_path):
     ex = ScriptedExecutor([ExecResult(0, judge_cli(GOOD_SCORE))])
     score = judge_trial(trial, executor=ex)
 
-    assert score == JudgeScore(82, 64, "solid plan")
+    assert score == GOOD_JUDGE_SCORE
     assert len(ex.calls) == 1
 
     # judge input saved and NFR4-clean, even though trial files name the arm
@@ -250,7 +254,8 @@ def test_judge_returns_strict_json_scores_on_canned_blinded_sample(tmp_path):
 
     output = json.loads((trial / "judge" / "output.json").read_text(encoding="utf-8"))
     assert output["score"] == {
-        "plan_quality": 82,
+        "human_readability": 82,
+        "agent_executability": 71,
         "verbosity_score": 64,
         "outcome_notes": "solid plan",
     }
@@ -262,7 +267,8 @@ def test_judge_scores_wired_into_result_json(tmp_path):
     judge_trial(trial, executor=ScriptedExecutor([ExecResult(0, judge_cli(GOOD_SCORE))]))
 
     data = read_result(trial)
-    assert data["judge"]["plan_quality"] == 82
+    assert data["judge"]["human_readability"] == 82
+    assert data["judge"]["agent_executability"] == 71
     assert data["judge"]["verbosity_score"] == 64
     assert data["judge"]["model"] == JUDGE_MODEL
     assert data["verdict"] == "pass"
@@ -306,7 +312,7 @@ def test_judge_retry_recovers_after_bad_first_reply(tmp_path):
         ]
     )
     score = judge_trial(trial, executor=ex)
-    assert score == JudgeScore(82, 64, "solid plan")
+    assert score == GOOD_JUDGE_SCORE
     assert read_result(trial)["verdict"] == "pass"
 
 
@@ -315,21 +321,68 @@ def test_postcheck_fail_keeps_fail_despite_high_judge_score(tmp_path):
     score = judge_trial(
         trial, executor=ScriptedExecutor([ExecResult(0, judge_cli(GOOD_SCORE))])
     )
-    assert score == JudgeScore(82, 64, "solid plan")
+    assert score == GOOD_JUDGE_SCORE
     assert read_result(trial)["verdict"] == "fail"
 
 
-def test_low_plan_quality_fails_when_postcheck_passes(tmp_path):
+def test_low_human_readability_fails_when_postcheck_passes(tmp_path):
+    # quality floor keys on human_readability (two-audience-quality ADR);
+    # a strong machine layer alone does not clear it
     trial = make_trial_dir(tmp_path)
     low = json.dumps(
         {
-            "plan_quality": JUDGE_QUALITY_FLOOR - 1,
+            "human_readability": JUDGE_QUALITY_FLOOR - 1,
+            "agent_executability": 95,
             "verbosity_score": 90,
             "outcome_notes": "thin",
         }
     )
     judge_trial(trial, executor=ScriptedExecutor([ExecResult(0, judge_cli(low))]))
     assert read_result(trial)["verdict"] == "fail"
+
+
+def test_v1_judge_block_still_parses_for_old_runs():
+    # rubric v1 blocks live in judge-v1/ archives and old runs' result.json
+    score = JudgeScore.from_dict(
+        {"plan_quality": 77, "verbosity_score": 60, "outcome_notes": "v1"}
+    )
+    assert score.human_readability == 77
+    assert score.agent_executability is None
+    assert score.verbosity_score == 60
+
+
+def test_rubric_v2_asks_for_both_audience_scores():
+    from harness.judge import FORMAT_REMINDER, RUBRIC
+
+    for key in ("human_readability", "agent_executability", "verbosity_score"):
+        assert key in RUBRIC
+        assert key in FORMAT_REMINDER
+    assert "plan_quality" not in RUBRIC
+
+
+def test_v1_reply_no_longer_parses():
+    from harness.judge import parse_score
+
+    v1 = '{"plan_quality": 82, "verbosity_score": 64, "outcome_notes": "old"}'
+    assert parse_score(v1) is None
+    assert parse_score(GOOD_SCORE) == GOOD_JUDGE_SCORE
+
+
+def test_judge_reads_machine_layer_artifacts(tmp_path):
+    # agent_executability needs the machine layer: machine_files join the
+    # judge input alongside plan_files
+    trial = make_trial_dir(tmp_path)
+    workspace = trial / "workspace"
+    (workspace / "TASKS.md").write_text(
+        "unmistakable-machine-checklist-token", encoding="utf-8"
+    )
+    data = read_result(trial)
+    data["artifact_metrics"]["machine_files"] = ["TASKS.md"]
+    (trial / "result.json").write_text(json.dumps(data), encoding="utf-8")
+
+    judge_trial(trial, executor=ScriptedExecutor([ExecResult(0, judge_cli(GOOD_SCORE))]))
+    input_text = (trial / "judge" / "input.txt").read_text(encoding="utf-8")
+    assert "unmistakable-machine-checklist-token" in input_text
 
 
 def test_judge_command_runs_in_harness_service_with_fixed_model(tmp_path):

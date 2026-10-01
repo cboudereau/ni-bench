@@ -25,7 +25,10 @@ CLI_VERSION = "2.1.285"
 PLUGIN_VERSIONS = (("superpowers", "6.4.2"), ("ni", "1.5.0"), ("openspec", "1.13.2"))
 
 RESOURCE_KPIS = ("tokens_total", "cost_usd", "duration_s", "turns", "user_turns", "plan_words")
-JUDGE_KPIS = ("plan_quality", "verbosity_score")
+# machine layer: reported raw, never scored - its value is scored through
+# resumability, not word count (two-audience-quality ADR)
+RAW_ONLY_KPIS = ("machine_words",)
+JUDGE_KPIS = ("human_readability", "agent_executability", "verbosity_score")
 
 EM_DASH = "—"
 
@@ -52,6 +55,16 @@ def score_kpi(values: dict[str, float | None]) -> dict[str, float | None]:
     return scores
 
 
+def _judge_value(judge: dict, kpi: str) -> float | None:
+    """Judge KPI from a v2 block; rubric-v1 blocks (old runs) map
+    plan_quality to human_readability and leave agent_executability None."""
+    if kpi in judge and judge[kpi] is not None:
+        return judge[kpi]
+    if kpi == "human_readability":
+        return judge.get("plan_quality")
+    return None
+
+
 def _tokens_total(result: dict) -> float:
     """Subject tokens: every usage counter, cache reads included (kpi-scoring ADR)."""
     usage = result.get("cli_json", {}).get("usage", {})
@@ -72,6 +85,8 @@ def _raw_resource(result: dict, kpi: str) -> float:
         return result.get("user_turns", 0)
     if kpi == "plan_words":
         return result.get("artifact_metrics", {}).get("plan_words", 0)
+    if kpi == "machine_words":
+        return result.get("artifact_metrics", {}).get("machine_words", 0)
     raise KeyError(kpi)
 
 
@@ -84,17 +99,16 @@ def aggregate(trials: list[dict]) -> dict:
     """
     determinate = [t for t in trials if t.get("verdict") != "indeterminate"]
     row: dict = {}
-    for kpi in RESOURCE_KPIS:
+    for kpi in RESOURCE_KPIS + RAW_ONLY_KPIS:
         values = [_raw_resource(t, kpi) for t in determinate]
         row[kpi] = statistics.median(values) if values else None
     for kpi in JUDGE_KPIS:
         values = [
-            t["judge"][kpi]
+            _judge_value(t["judge"], kpi)
             for t in determinate
-            if isinstance(t.get("judge"), dict)
-            and not t["judge"].get("indeterminate")
-            and kpi in t["judge"]
+            if isinstance(t.get("judge"), dict) and not t["judge"].get("indeterminate")
         ]
+        values = [v for v in values if v is not None]
         row[kpi] = statistics.median(values) if values else None
     row["outcome_pass"] = sum(1 for t in determinate if t.get("verdict") == "pass")
     row["determinate"] = len(determinate)
@@ -125,7 +139,7 @@ def _fmt_raw(kpi: str, x: float) -> str:
         return f"{x:,.1f}".replace(",", " ") + " s"
     if kpi == "tokens_total":
         return f"{_num(x)} tok"
-    if kpi == "plan_words":
+    if kpi in ("plan_words", "machine_words"):
         return f"{_num(x)} words"
     return _num(x)
 
@@ -158,13 +172,14 @@ def _subject_model(results_dir: Path) -> str:
 
 
 def _plan_words_cells(rows_agg: dict[str, dict | None], arm_names: list[str]) -> list[str]:
-    """Quality floor (kpi-scoring ADR): scored only where plan_quality >= floor."""
+    """Quality floor (kpi-scoring + two-audience-quality ADRs): plan_words is
+    scored only where the human layer holds, human_readability >= floor."""
     qualified = {
         arm
         for arm in arm_names
         if rows_agg[arm]
-        and rows_agg[arm]["plan_quality"] is not None
-        and rows_agg[arm]["plan_quality"] >= JUDGE_QUALITY_FLOOR
+        and rows_agg[arm]["human_readability"] is not None
+        and rows_agg[arm]["human_readability"] >= JUDGE_QUALITY_FLOOR
         and rows_agg[arm]["plan_words"] is not None
     }
     scores = score_kpi(
@@ -245,12 +260,22 @@ class Report:
                 "| KPI | " + " | ".join(arm_names) + " |",
                 "|---|" + "---|" * len(arm_names),
             ]
+            word_kpis = ("plan_words",) + RAW_ONLY_KPIS
             kpis = [
-                k for k in RESOURCE_KPIS if k != "plan_words" or scenario.family == "plan"
+                k
+                for k in RESOURCE_KPIS + RAW_ONLY_KPIS
+                if k not in word_kpis or scenario.family == "plan"
             ]
             for kpi in kpis:
                 if kpi == "plan_words":
                     cells = _plan_words_cells(rows_agg, arm_names)
+                elif kpi in RAW_ONLY_KPIS:
+                    cells = [
+                        EM_DASH
+                        if not rows_agg[arm] or rows_agg[arm][kpi] is None
+                        else _fmt_raw(kpi, rows_agg[arm][kpi])
+                        for arm in arm_names
+                    ]
                 else:
                     values = {
                         arm: (rows_agg[arm][kpi] if rows_agg[arm] else None)
@@ -292,9 +317,14 @@ class Report:
         lines += [
             "## Notes",
             "",
-            f"- `plan_words` is scored only among arms whose `plan_quality` is at least "
-            f"{JUDGE_QUALITY_FLOOR} (quality floor, kpi-scoring ADR); arms below the floor "
-            f"show the raw value only.",
+            f"- `plan_words` counts the human-facing layer only and is scored only among "
+            f"arms whose `human_readability` is at least {JUDGE_QUALITY_FLOOR} (quality "
+            f"floor, kpi-scoring + two-audience-quality ADRs); arms below the floor show "
+            f"the raw value only.",
+            "- `machine_words` counts the machine-facing layer (task checklists, "
+            "preflight gates) and is reported raw, never scored: its value is scored "
+            "through resumability, not word count (two-audience-quality ADR). Tooling "
+            "scaffolding written by plugin init is excluded from both counts.",
             "- Indeterminate trials are excluded from medians and pass-rates; the "
             "`indeterminate` row counts them per arm (FR7).",
             "- Blinding residual risk (NFR4): arm identifiers are redacted from judge "

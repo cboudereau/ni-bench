@@ -34,23 +34,40 @@ class Scenario:
 
 @dataclass(frozen=True)
 class JudgeScore:
-    """Blinded judge scores on 0-100 scales (FR5, blind-llm-judge ADR)."""
+    """Blinded judge scores on 0-100 scales (FR5, two-audience-quality ADR).
 
-    plan_quality: int
+    Rubric v2 splits quality by audience: ``human_readability`` grades the
+    human-facing layer, ``agent_executability`` the machine layer. Rubric v1
+    blocks (old runs, ``judge-v1/`` archives) carry a single ``plan_quality``;
+    ``from_dict`` maps it to ``human_readability`` and leaves
+    ``agent_executability`` unmeasured (None).
+    """
+
+    human_readability: int
+    agent_executability: int | None
     verbosity_score: int
     outcome_notes: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return {
-            "plan_quality": self.plan_quality,
+            "human_readability": self.human_readability,
+            "agent_executability": self.agent_executability,
             "verbosity_score": self.verbosity_score,
             "outcome_notes": self.outcome_notes,
         }
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "JudgeScore":
-        return cls(
-            plan_quality=data["plan_quality"],
+        if "human_readability" in data:
+            return cls(
+                human_readability=data["human_readability"],
+                agent_executability=data.get("agent_executability"),
+                verbosity_score=data["verbosity_score"],
+                outcome_notes=data.get("outcome_notes", ""),
+            )
+        return cls(  # rubric v1 block
+            human_readability=data["plan_quality"],
+            agent_executability=None,
             verbosity_score=data["verbosity_score"],
             outcome_notes=data.get("outcome_notes", ""),
         )

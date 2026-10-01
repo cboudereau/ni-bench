@@ -23,6 +23,7 @@ def trial(
     turns=4,
     user_turns=0,
     plan_words=100,
+    machine_words=0,
     judge=None,
     error=None,
 ):
@@ -36,7 +37,12 @@ def trial(
             "num_turns": turns,
             "usage": {"input_tokens": tin, "output_tokens": tout},
         },
-        "artifact_metrics": {"plan_words": plan_words, "plan_files": []},
+        "artifact_metrics": {
+            "plan_words": plan_words,
+            "machine_words": machine_words,
+            "plan_files": [],
+            "machine_files": [],
+        },
         "user_turns": user_turns,
         "judge": judge,
         "verdict": verdict,
@@ -68,29 +74,56 @@ def test_score_formulas_exact():
 
 def test_indeterminate_excluded_from_median():
     trials = [
-        trial(verdict="pass", tin=8000, tout=2000,
-              judge={"plan_quality": 70, "verbosity_score": 60}),
-        trial(verdict="fail", tin=25000, tout=5000,
-              judge={"plan_quality": 80, "verbosity_score": 90}),
+        trial(verdict="pass", tin=8000, tout=2000, machine_words=100,
+              judge={"human_readability": 70, "agent_executability": 50,
+                     "verbosity_score": 60}),
+        trial(verdict="fail", tin=25000, tout=5000, machine_words=300,
+              judge={"human_readability": 80, "agent_executability": 90,
+                     "verbosity_score": 90}),
         trial(verdict="indeterminate", tin=999999, tout=0, error="timeout", judge=None),
     ]
     row = aggregate(trials)
     assert row["tokens_total"] == 20000  # median of 10000, 30000 - not 30000
-    assert row["plan_quality"] == 75
+    assert row["human_readability"] == 75
+    assert row["agent_executability"] == 70
     assert row["verbosity_score"] == 75
+    assert row["machine_words"] == 200
     assert row["indeterminate"] == 1
     assert row["determinate"] == 2
     assert row["outcome_pass"] == 1  # pass-rate denominator is determinate trials
     assert row["trials"] == 3
 
 
+def test_aggregate_falls_back_to_v1_plan_quality():
+    # old runs carry rubric-v1 judge blocks: plan_quality stands in for
+    # human_readability; agent_executability stays unmeasured (None)
+    trials = [
+        trial(judge={"plan_quality": 70, "verbosity_score": 60}),
+    ]
+    row = aggregate(trials)
+    assert row["human_readability"] == 70
+    assert row["agent_executability"] is None
+    assert row["verbosity_score"] == 60
+
+
 def test_plan_words_quality_floor():
     rendered = Report.render(RESULTS)
-    # baseline plan_quality 40 < 50: raw shown, no percent; others scored
+    # baseline human_readability 40 < 50: raw shown, no percent; others scored
     assert (
         "| plan_words | — (800 words) | 25% (1 600 words) "
         "| 100% (400 words) | 80% (500 words) |" in rendered
     )
+
+
+def test_machine_words_reported_raw_only():
+    rendered = Report.render(RESULTS)
+    # two-audience-quality ADR: machine layer reported, never scored - no percent
+    assert (
+        "| machine_words | 0 words | 200 words | 0 words | 785 words |" in rendered
+    )
+    # and absent from non-plan tables, like plan_words
+    debug_table = rendered.split("## debug-easy (home-grown)")[1].split("## ")[0]
+    assert "machine_words" not in debug_table
 
 
 def test_render_deterministic():

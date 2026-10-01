@@ -15,7 +15,9 @@
   },
   "artifact_metrics": {
     "plan_words": 0,
+    "machine_words": 0,
     "plan_files": [],
+    "machine_files": [],
     "files_changed": 1
   },
   "user_turns": 0,
@@ -32,7 +34,8 @@
     "returncode": 0
   },
   "judge": {
-    "plan_quality": 60,
+    "human_readability": 60,
+    "agent_executability": 40,
     "verbosity_score": 70,
     "outcome_notes": "canned",
     "model": "claude-sonnet-5-5",

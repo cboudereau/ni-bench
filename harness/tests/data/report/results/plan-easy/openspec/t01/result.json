@@ -15,8 +15,12 @@
   },
   "artifact_metrics": {
     "plan_words": 1600,
+    "machine_words": 200,
     "plan_files": [
       "openspec/changes/plan.md"
+    ],
+    "machine_files": [
+      "openspec/changes/plan/tasks.md"
     ],
     "files_changed": 1
   },
@@ -34,7 +38,8 @@
     "returncode": 0
   },
   "judge": {
-    "plan_quality": 80,
+    "human_readability": 80,
+    "agent_executability": 85,
     "verbosity_score": 60,
     "outcome_notes": "canned",
     "model": "claude-sonnet-5-5",

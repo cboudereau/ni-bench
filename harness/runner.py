@@ -24,6 +24,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
+from harness.arms import classify_artifact
 from harness.cost_guard import CostGuard, threshold_for
 from harness.executor import Executor, compose_run_command, default_executor
 from harness.models import Arm, Scenario, TrialResult, Verdict
@@ -92,15 +93,16 @@ def postcheck_command(scenario_id: str, workspace_dir: Path | str) -> list[str]:
     return cmd
 
 
-def artifact_metrics(
-    workspace: Path, artifact_glob: str, changed: Sequence[str] = ()
-) -> dict:
-    """Plan word count and file list per the arm's artifact glob (kpi-scoring ADR).
+def artifact_metrics(workspace: Path, arm: Arm, changed: Sequence[str] = ()) -> dict:
+    """Two-audience artifact metrics (kpi-scoring + two-audience-quality ADRs).
 
-    Union with the trial's changed markdown files: the task 7 smoke run showed
-    arms writing the plan at the workspace root, outside their conventional
-    glob, which zeroed plan_words (scored 100 by min/value) and starved the
-    judge of artifacts. Applied identically to every arm.
+    Candidate files are the arm's artifact glob unioned with the trial's
+    changed markdown files: the task 7 smoke run showed arms writing the plan
+    at the workspace root, outside their conventional glob, which zeroed
+    plan_words (scored 100 by min/value) and starved the judge of artifacts.
+    Applied identically to every arm. Each candidate is then classified
+    human / machine / excluded: ``plan_words`` counts the human layer only,
+    ``machine_words`` the machine layer; excluded scaffolding counts nowhere.
     """
     produced = [
         workspace / rel
@@ -108,15 +110,51 @@ def artifact_metrics(
         if rel.endswith(".md") and (workspace / rel).is_file()
     ]
     files = sorted(
-        {p for p in workspace.glob(artifact_glob) if p.is_file()} | set(produced)
+        {p for p in workspace.glob(arm.artifact_glob) if p.is_file()} | set(produced)
     )
-    words = sum(
-        len(p.read_text(encoding="utf-8", errors="replace").split()) for p in files
-    )
+    by_class: dict[str, list[Path]] = {"human": [], "machine": [], "excluded": []}
+    for p in files:
+        rel = p.relative_to(workspace).as_posix()
+        by_class[classify_artifact(arm.name, rel)].append(p)
+
+    def words(paths: list[Path]) -> int:
+        return sum(
+            len(p.read_text(encoding="utf-8", errors="replace").split()) for p in paths
+        )
+
+    def rels(paths: list[Path]) -> list[str]:
+        return [p.relative_to(workspace).as_posix() for p in paths]
+
     return {
-        "plan_words": words,
-        "plan_files": [p.relative_to(workspace).as_posix() for p in files],
+        "plan_words": words(by_class["human"]),
+        "machine_words": words(by_class["machine"]),
+        "plan_files": rels(by_class["human"]),
+        "machine_files": rels(by_class["machine"]),
     }
+
+
+def _changed_from_diff(diff_path: Path) -> list[str]:
+    """Changed paths recovered from a saved ``fixture.diff`` (offline recompute)."""
+    if not diff_path.is_file():
+        return []
+    changed = []
+    for line in diff_path.read_text(encoding="utf-8", errors="replace").splitlines():
+        if line.startswith("diff --git a/"):
+            changed.append(line.split(" b/", 1)[-1])
+    return changed
+
+
+def recompute_artifact_metrics(trial_dir: Path, arm: Arm) -> dict:
+    """Recompute the split metrics from a saved trial dir, no re-run needed.
+
+    Everything required is on disk: ``workspace/`` for the files and
+    ``fixture.diff`` for the changed-file union (two-audience-quality ADR:
+    existing runs' result.json are fixable offline).
+    """
+    trial_dir = Path(trial_dir)
+    return artifact_metrics(
+        trial_dir / "workspace", arm, _changed_from_diff(trial_dir / "fixture.diff")
+    )
 
 
 def _git(workspace: Path, *args: str) -> str:
@@ -298,7 +336,7 @@ def run_trial(
     )
     changed = _git(workspace, "diff", "--cached", "--name-only").split()
 
-    metrics = artifact_metrics(workspace, arm.artifact_glob, changed)
+    metrics = artifact_metrics(workspace, arm, changed)
     metrics["files_changed"] = len(changed)
 
     postcheck: dict | None = None
@@ -416,3 +454,51 @@ def run_matrix(
         encoding="utf-8",
     )
     return MatrixResult(partial=partial, trials=trials, spent_usd=guard.spent_usd)
+
+
+def main(argv: list[str] | None = None) -> int:
+    """CLI: ``python -m harness.runner recompute <results_dir>``.
+
+    Recomputes the two-audience artifact metrics of every saved trial in
+    place (two-audience-quality ADR stage 1) - a pure disk operation, no
+    container, no API spend. ``files_changed`` is preserved from the saved
+    result.
+    """
+    import argparse
+
+    from harness.arms import ARMS
+    from harness.judge import find_trial_dirs
+
+    parser = argparse.ArgumentParser(prog="harness.runner")
+    parser.add_argument("command", choices=["recompute"])
+    parser.add_argument("results", nargs="?", default=".reports")
+    args = parser.parse_args(argv)
+
+    arms_by_name = {a.name: a for a in ARMS}
+    count = 0
+    for trial_dir in find_trial_dirs(Path(args.results)):
+        result_path = trial_dir / "result.json"
+        data = json.loads(result_path.read_text(encoding="utf-8"))
+        arm = arms_by_name.get(data.get("arm"))
+        if arm is None:
+            print(f"{trial_dir}: unknown arm {data.get('arm')!r}, skipped")
+            continue
+        old = data.get("artifact_metrics", {})
+        metrics = recompute_artifact_metrics(trial_dir, arm)
+        if "files_changed" in old:  # not recomputable offline
+            metrics["files_changed"] = old["files_changed"]
+        data["artifact_metrics"] = metrics
+        result_path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+        count += 1
+        print(
+            f"{trial_dir}: recomputed plan_words {old.get('plan_words')} -> "
+            f"{metrics['plan_words']}, machine_words -> {metrics['machine_words']}"
+        )
+    print(f"recomputed {count} trial(s)")
+    return 0
+
+
+if __name__ == "__main__":
+    import sys
+
+    sys.exit(main())

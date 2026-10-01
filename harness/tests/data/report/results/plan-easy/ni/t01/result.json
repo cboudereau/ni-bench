@@ -15,7 +15,11 @@
   },
   "artifact_metrics": {
     "plan_words": 500,
+    "machine_words": 785,
     "plan_files": [
+      "docs/workspace/plan/DESIGN.md"
+    ],
+    "machine_files": [
       "docs/workspace/plan/TASKS.md"
     ],
     "files_changed": 1
@@ -34,7 +38,8 @@
     "returncode": 0
   },
   "judge": {
-    "plan_quality": 85,
+    "human_readability": 85,
+    "agent_executability": 90,
     "verbosity_score": 90,
     "outcome_notes": "canned",
     "model": "claude-sonnet-5-5",

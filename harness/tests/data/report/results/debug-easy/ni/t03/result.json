@@ -15,7 +15,9 @@
   },
   "artifact_metrics": {
     "plan_words": 0,
+    "machine_words": 0,
     "plan_files": [],
+    "machine_files": [],
     "files_changed": 1
   },
   "user_turns": 0,

@@ -8,7 +8,9 @@
 | turns | 50% (10) | 25% (20) | 100% (5) | 62% (8) |
 | user_turns | 0% (2) | 100% (0) | 0% (1) | 0% (1) |
 | plan_words | — (800 words) | 25% (1 600 words) | 100% (400 words) | 80% (500 words) |
-| plan_quality | 40% (40) | 80% (80) | 90% (90) | 85% (85) |
+| machine_words | 0 words | 200 words | 0 words | 785 words |
+| human_readability | 40% (40) | 80% (80) | 90% (90) | 85% (85) |
+| agent_executability | 30% (30) | 85% (85) | 55% (55) | 90% (90) |
 | verbosity_score | 50% (50) | 60% (60) | 80% (80) | 90% (90) |
 | outcome | 0% (0/1) | 100% (1/1) | 100% (1/1) | 100% (1/1) |
 | indeterminate | 0/1 | 0/1 | 0/1 | 0/1 |
