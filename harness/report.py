@@ -22,7 +22,7 @@ from harness.simulator import SIMULATOR_MODEL
 
 # Pins recorded at image build time (arms/Dockerfile.* and their build logs).
 CLI_VERSION = "2.1.285"
-PLUGIN_VERSIONS = (("superpowers", "6.4.2"), ("ni", "1.5.0"), ("openspec", "1.13.2"))
+PLUGIN_VERSIONS = (("superpowers", "6.4.2"), ("ni", "1.7.0"), ("openspec", "1.13.2"))
 
 RESOURCE_KPIS = ("tokens_total", "cost_usd", "duration_s", "turns", "user_turns", "plan_words")
 # machine layer: reported raw, never scored - its value is scored through

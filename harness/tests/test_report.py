@@ -146,7 +146,7 @@ def test_header_metadata_and_layout():
         "claude-haiku-4-5-20251001",  # simulator
         "2.1.285",
         "superpowers 6.4.2",
-        "ni 1.5.0",
+        "ni 1.7.0",
         "openspec 1.13.2",
         "2026-09-29",
         "terse=full",
