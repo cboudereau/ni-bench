@@ -213,6 +213,11 @@ def run_trial(
     max_user_turns: int = MAX_USER_TURNS,
 ) -> TrialResult:
     trial_dir = results_root / scenario.id / arm.name / trial_id
+    # resume: a saved result makes the trial a no-op, so an interrupted
+    # matrix can be relaunched into the same run folder without re-spending
+    saved = trial_dir / "result.json"
+    if saved.exists():
+        return TrialResult.from_dict(json.loads(saved.read_text(encoding="utf-8")))
     workspace = trial_dir / "workspace"
     home = trial_dir / "home"  # persists session state across compose runs
     sim_home = trial_dir / "sim-home"

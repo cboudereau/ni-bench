@@ -262,3 +262,36 @@ def test_plan_artifacts_outside_arm_glob_still_captured(tmp_path):
     saved = json.loads((trial_dir / "result.json").read_text())
     assert saved["artifact_metrics"]["plan_files"] == ["PLAN.md"]
     assert saved["artifact_metrics"]["plan_words"] == 5
+
+
+def test_existing_result_json_skips_trial(tmp_path):
+    """Resume: a saved result.json returns as-is, no executor call."""
+    from harness.arms import ARMS
+    from harness.models import TrialResult, Verdict
+    from harness.runner import run_trial
+    from harness.scenarios import SCENARIOS
+
+    arm = ARMS[0]
+    scenario = next(s for s in SCENARIOS if s.id == "plan-easy")
+    trial_dir = tmp_path / scenario.id / arm.name / "t1"
+    trial_dir.mkdir(parents=True)
+    canned = TrialResult(
+        arm=arm.name,
+        scenario=scenario.id,
+        trial_id="t1",
+        verdict=Verdict.PASS,
+        cli_json={},
+        artifact_metrics={},
+    )
+    import json as _json
+
+    (trial_dir / "result.json").write_text(_json.dumps(canned.to_dict()))
+
+    def exploding_executor(cmd, timeout_s):
+        raise AssertionError("executor must not run on resume")
+
+    got = run_trial(
+        arm, scenario, "t1", results_root=tmp_path, executor=exploding_executor
+    )
+    assert got.verdict == "pass"
+    assert got.trial_id == "t1"
