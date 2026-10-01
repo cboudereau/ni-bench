@@ -369,6 +369,7 @@ def run_matrix(
     guard = CostGuard(threshold_usd if threshold_usd is not None else threshold_for(n))
     trials: list[TrialResult] = []
     partial = False
+    total = len(scenarios) * len(arms) * n
     for scenario in scenarios:
         for arm in arms:
             for i in range(1, n + 1):
@@ -383,6 +384,13 @@ def run_matrix(
                 )
                 trials.append(trial)
                 guard.record(trial.total_cost_usd)
+                print(
+                    f"[{len(trials)}/{total}] {scenario.id}/{arm.name}"
+                    f"/trial-{i:02d}: {trial.verdict.value}"
+                    f" ({trial.total_cost_usd:.2f} USD,"
+                    f" total {guard.spent_usd:.2f} USD)",
+                    flush=True,
+                )
                 if guard.exceeded:
                     partial = True
                     break
