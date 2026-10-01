@@ -1,18 +1,7 @@
-# results: raw trial state (HOME dirs, workspaces) stays local; the auditable
-# artifacts (result.json, blinded judge inputs/outputs, transcripts) are
-# committed (task 7) so every verdict is re-triageable from the repo.
-/results/**
-!/results/**/
-/results/**/workspace/
-/results/**/home/
-/results/**/sim-home/
-/results/**/judge/home/
-!/results/matrix.json
-!/results/**/result.json
-!/results/**/judge/input.txt
-!/results/**/judge/output.json
-!/results/**/turns/turn-*.json
-!/results/**/simulator/transcript.json
+# run artifacts: trials, reports, analyses stay local
+/results/
+/REPORT*.md
+/ANALYSIS*.md
 .env
 .venv/
 __pycache__/
