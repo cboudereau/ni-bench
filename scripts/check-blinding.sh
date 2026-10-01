@@ -11,10 +11,10 @@ pattern='\b(ni|openspec|opsx|superpowers|baseline|natural-intelligence|fission|o
 inputs=()
 while IFS= read -r file; do
   inputs+=("$file")
-done < <(find results -type f -path '*/judge/input.txt' 2>/dev/null || true)
+done < <(find .reports -type f -path '*/judge/input.txt' 2>/dev/null || true)
 
 if [ "${#inputs[@]}" -eq 0 ]; then
-  echo "blinding check: no judge inputs under results/ yet - trivially clean"
+  echo "blinding check: no judge inputs under .reports/ yet - trivially clean"
   exit 0
 fi
 

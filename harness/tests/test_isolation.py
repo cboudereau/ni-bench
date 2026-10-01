@@ -47,7 +47,7 @@ def test_allows_repo_tree_trial_dir_and_non_bind_volumes():
     config = _config(
         {
             "harness": [
-                _bind(f"{REPO_ROOT}/results/trial-001"),
+                _bind(f"{REPO_ROOT}/.reports/trial-001"),
                 _bind("/tmp/ni-bench-trial-abc123"),
                 {"type": "tmpfs", "target": "/home/node"},
                 {"type": "volume", "source": "named", "target": "/data"},

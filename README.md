@@ -58,7 +58,7 @@ BENCH_N=1 ./scripts/bench.sh  # cheaper full matrix (n=1)
 ./scripts/bench.sh smoke      # plan-easy only, n=1 — a few USD
 ```
 
-The run folder `results/run-<timestamp>/` receives:
+The run folder `.reports/run-<timestamp>/` receives:
 
 - one trial dir per (scenario, arm, trial): raw CLI JSON per turn, simulator transcript, fixture diff, postcheck output, `result.json`, blinded judge input/output
 - `matrix.json` (n, date, spend, partial flag)
@@ -70,7 +70,7 @@ All run outputs are local and git-excluded. Live trials bill real API spend; the
 Extra checks:
 
 ```bash
-./scripts/cost-check.sh results/run-<timestamp>   # spend vs cap
+./scripts/cost-check.sh .reports/run-<timestamp>   # spend vs cap
 ./scripts/check-blinding.sh                       # judge inputs carry no arm identifiers
 ./scripts/check-isolation.sh                      # no host config leaks
 ```

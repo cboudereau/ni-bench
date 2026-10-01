@@ -2,7 +2,7 @@
 
 Benchmark comparing Claude Code plugins (baseline, openspec, superpowers, ni) on 7 scenarios in isolated Docker arms, with a blind LLM judge, a simulated user, and deterministic post-checks. Integrated 2026-10-01.
 
-Deliverables are per-run local artifacts (git-excluded): each run folder under results/ holds its trials, REPORT.md, and ANALYSIS.md. Setup and usage: [README.md](../../README.md).
+Deliverables are per-run local artifacts (git-excluded): each run folder under .reports/ holds its trials, REPORT.md, and ANALYSIS.md. Setup and usage: [README.md](../../README.md).
 
 ## Design
 
@@ -21,4 +21,4 @@ Deliverables are per-run local artifacts (git-excluded): each run folder under r
 ## Audit
 
 - [CALIBRATION.md](CALIBRATION.md) — frozen rubric, question-detection heuristic, brief fixes, infra bugs found during smoke
-- Reported run: `results/matrix-v2/` (84 trials, 0 indeterminate, 10.81 USD) — local only, like all run artifacts; discarded pre-fix run kept locally, see the run ANALYSIS.md disclosures
+- Reported run: `.reports/matrix-v2/` (84 trials, 0 indeterminate, 10.81 USD) — local only, like all run artifacts; discarded pre-fix run kept locally, see the run ANALYSIS.md disclosures

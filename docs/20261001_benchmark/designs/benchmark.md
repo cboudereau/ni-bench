@@ -65,7 +65,7 @@ The bias reasoning follows the ni `bias-analysis` method (sponsor bias, selectio
 - **Verify**: `./scripts/cost-check.sh` — compares `jq -s '[.[].total_cost_usd] | add' results/**/result.json` against 50 × n (per-trial `total_cost_usd` already sums subject, judge, and simulator)
 
 ### <a id="nfr3"></a>NFR3 — Deterministic report
-- **Scenario**: `report` re-run on unchanged `results/` → identical output
+- **Scenario**: `report` re-run on unchanged `.reports/<run>/` → identical output
 - **Measure**: byte-identical REPORT.md output
 - **Verify**: `./scripts/report.sh && cp REPORT.md /tmp/r1 && ./scripts/report.sh && diff /tmp/r1 REPORT.md`
 
@@ -109,7 +109,7 @@ graph TB
     subgraph host [Host - trusted machine]
         run[run.sh matrix driver]
         report[report.sh aggregator]
-        results[(results/ JSON + artifacts)]
+        results[(.reports/ JSON + artifacts)]
     end
     subgraph compose [docker compose]
         subgraph arms [one service per arm]
@@ -150,7 +150,7 @@ Decisions:
 
 ## Data & migration
 
-N/A: no persistence beyond flat `results/` JSON files and the generated REPORT.md; both are regenerable.
+N/A: no persistence beyond flat `.reports/` JSON files and the generated REPORT.md; both are regenerable.
 
 ## Cross-cutting Concerns
 

@@ -1,7 +1,5 @@
 # run artifacts: trials, reports, analyses stay local
-/results/
-/REPORT*.md
-/ANALYSIS*.md
+/.reports/
 .env
 .venv/
 __pycache__/

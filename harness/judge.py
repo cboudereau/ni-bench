@@ -266,7 +266,7 @@ def main(argv: list[str] | None = None) -> int:
     import argparse
 
     parser = argparse.ArgumentParser(prog="harness.judge")
-    parser.add_argument("results", nargs="?", default="results")
+    parser.add_argument("results", nargs="?", default=".reports")
     parser.add_argument("--force", action="store_true", help="re-judge judged trials")
     args = parser.parse_args(argv)
     judged = judge_results(Path(args.results), force=args.force)

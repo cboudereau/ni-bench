@@ -2,7 +2,7 @@
 
 smoke: plan-easy, all arms, n=1. matrix: all scenarios, all arms, n from --n
 (run.sh passes BENCH_N, default 3). Exit 0 complete, 2 when the cost guard
-stopped the matrix (results marked partial in results/matrix.json).
+stopped the matrix (results marked partial in <run dir>/matrix.json).
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "--results-root",
         type=Path,
         default=None,
-        help="per-run results directory (default: results/)",
+        help="per-run results directory (default: .reports/)",
     )
     args = parser.parse_args(argv)
 
@@ -36,7 +36,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         scenarios = list(SCENARIOS)
         n = args.n or 3
 
-    results_root = args.results_root or REPO_ROOT / "results"
+    results_root = args.results_root or REPO_ROOT / ".reports"
     result = run_matrix(ARMS, scenarios, n, results_root=results_root)
     status = "PARTIAL (cost guard)" if result.partial else "complete"
     print(

@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # One-command benchmark run: trials + judging + report into a dedicated
-# timestamped folder under results/. All outputs are local (git-excluded).
+# timestamped folder under .reports/. All outputs are local (git-excluded).
 #
 #   ./scripts/bench.sh            # full matrix, n=3
 #   BENCH_N=1 ./scripts/bench.sh  # cheaper run
 #   ./scripts/bench.sh smoke      # plan-easy only, n=1
 #
-# The run folder results/run-<timestamp>/ receives the trial dirs,
+# The run folder .reports/run-<timestamp>/ receives the trial dirs,
 # matrix.json, REPORT.md, and an ANALYSIS.md stub. The analysis reading
 # (FR9: bias table, baseline comparison, recommendations) is written by
 # the operator or an agent from the run's REPORT.md and trial dirs.
@@ -18,7 +18,7 @@ MODE="${1:-matrix}"
 N="${BENCH_N:-3}"
 [ "$MODE" = "smoke" ] && N="${BENCH_N:-1}"
 STAMP="$(date +%Y%m%d-%H%M%S)"
-RUN_DIR="results/run-$STAMP"
+RUN_DIR=".reports/run-$STAMP"
 mkdir -p "$RUN_DIR"
 echo "run folder: $RUN_DIR (mode=$MODE, n=$N)"
 

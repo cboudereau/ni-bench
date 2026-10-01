@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# NFR2 cost check (task 6): sums total_cost_usd over results/**/result.json
+# NFR2 cost check (task 6): sums total_cost_usd over <run dir>/**/result.json
 # (subject + simulator + judge already summed per trial) and compares against
-# the 50 x n USD cap, n read from results/matrix.json. Prints the sum; exits 0
+# the 50 x n USD cap, n read from <run dir>/matrix.json. Prints the sum; exits 0
 # under the cap, 1 over it.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-RESULTS_DIR="${1:-results}" uv run python - <<'PY'
+RESULTS_DIR="${1:-.reports}" uv run python - <<'PY'
 import json
 import os
 import sys

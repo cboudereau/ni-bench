@@ -28,7 +28,7 @@ Run a follow-up track with explicit flow invocation per arm:
   reading the shared `prompt.md`, so every trial is graded against the same
   task statement.
 - Scope: the plan family only (`plan-easy`, `plan-complex`), where the
-  canonical flows matter most. Results land under `results/explicit-v1`,
+  canonical flows matter most. Results land under `.reports/explicit-v1`,
   rendered to a separate report — the frozen main REPORT.md is untouched.
 
 ## Consequence

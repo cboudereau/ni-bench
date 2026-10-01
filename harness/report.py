@@ -312,7 +312,7 @@ def main(argv: list[str] | None = None) -> int:
     without touching the default REPORT.md.
     """
     args = sys.argv[1:] if argv is None else list(argv)
-    results_dir = Path(args[0]) if args else REPO_ROOT / "results"
+    results_dir = Path(args[0]) if args else REPO_ROOT / ".reports"
     out = Path(args[1]) if len(args) > 1 else REPO_ROOT / "REPORT.md"
     out.write_text(Report.render(results_dir), encoding="utf-8")
     print(f"wrote {out}")

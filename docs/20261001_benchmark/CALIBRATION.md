@@ -61,7 +61,7 @@ a simulator defect would have tanked those arms unfairly.
 Fix (single pass, plan-family briefs): the approval rule in
 `scenarios/plan-easy/brief.md` and `scenarios/plan-complex/brief.md` now states
 that approval closes the task ("never ask for implementation now; it happens
-later, outside this session"). Run 3 is archived under `results/calibration-run3/`.
+later, outside this session"). Run 3 is archived under `.reports/calibration-run3/`.
 Frozen.
 
 ## ni arm terse proof (deferred from task 2)
@@ -102,7 +102,7 @@ the level banner comes from the state-file hook and was injected regardless.
 | smoke run 1 | first live run; judge infra bug found | 0.4428 |
 | smoke run 2 | heuristic + judge fixes verified; first judged outputs | 0.5151 |
 | smoke run 3 | resume loop proven; simulator brief defect found | 0.8667 |
-| smoke run 4 | final clean smoke (results/plan-easy/) | 0.6892 |
+| smoke run 4 | final clean smoke (.reports/plan-easy/) | 0.6892 |
 
 Total task 7 spend: **2.51 USD** (cap: 50 × n = 50 USD, NFR2). All spend is
 per-trial auditable in the committed `result.json` files (subject + simulator +
