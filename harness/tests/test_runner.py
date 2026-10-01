@@ -295,3 +295,40 @@ def test_existing_result_json_skips_trial(tmp_path):
     )
     assert got.verdict == "pass"
     assert got.trial_id == "t1"
+
+
+def test_indeterminate_saved_result_retries_trial(tmp_path):
+    """Resume retries indeterminate trials instead of replaying them."""
+    import json as _json
+
+    from harness.arms import ARMS
+    from harness.executor import ExecResult
+    from harness.models import TrialResult, Verdict
+    from harness.runner import run_trial
+    from harness.scenarios import SCENARIOS
+
+    arm = ARMS[0]
+    scenario = next(s for s in SCENARIOS if s.id == "plan-easy")
+    trial_dir = tmp_path / scenario.id / arm.name / "t1"
+    trial_dir.mkdir(parents=True)
+    canned = TrialResult(
+        arm=arm.name,
+        scenario=scenario.id,
+        trial_id="t1",
+        verdict=Verdict.INDETERMINATE,
+        cli_json={},
+        artifact_metrics={},
+        error="429",
+    )
+    (trial_dir / "result.json").write_text(_json.dumps(canned.to_dict()))
+    calls = []
+
+    def failing_executor(cmd, timeout_s):
+        calls.append(cmd)
+        return ExecResult(1, "", "boom")
+
+    got = run_trial(
+        arm, scenario, "t1", results_root=tmp_path, executor=failing_executor
+    )
+    assert calls, "indeterminate trial must re-run, not replay"
+    assert got.verdict == Verdict.INDETERMINATE

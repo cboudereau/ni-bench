@@ -168,12 +168,15 @@ def judge_results(
 
     Already-judged trials (``judge`` block in result.json) are skipped unless
     ``force`` — re-judging respends real API budget, so it is opt-in only.
+    An indeterminate judgment (parse failure, timeout, 429) does not count
+    as judged: it is retried on the next pass.
     """
     results_root = Path(results_root)
     judged: list[Path] = []
     for trial_dir in find_trial_dirs(results_root):
         data = json.loads((trial_dir / "result.json").read_text(encoding="utf-8"))
-        if data.get("judge") is not None and not force:  # to_dict emits judge: null
+        prior = data.get("judge")  # to_dict emits judge: null when unjudged
+        if prior is not None and not prior.get("indeterminate") and not force:
             continue
         judge_trial(trial_dir, executor=executor, model=model)
         judged.append(trial_dir)

@@ -394,3 +394,16 @@ def test_judge_trial_mounts_absolute_home_from_relative_trial_dir(tmp_path, monk
     cmd = ex.calls[0]
     volume = cmd[cmd.index("-v") + 1]
     assert volume.split(":")[0].startswith("/"), volume
+
+
+def test_judge_results_retries_indeterminate_judgments(tmp_path):
+    """A judge block with indeterminate=True is re-judged without force."""
+    trial = make_trial_dir(tmp_path)
+    data = json.loads((trial / "result.json").read_text(encoding="utf-8"))
+    data["judge"] = {"indeterminate": True, "cost_usd": 0.0}
+    (trial / "result.json").write_text(json.dumps(data), encoding="utf-8")
+    ex = ScriptedExecutor([ExecResult(0, judge_cli(GOOD_SCORE))])
+    judged = judge_results(tmp_path, executor=ex)
+    assert judged == [trial]
+    out = json.loads((trial / "result.json").read_text(encoding="utf-8"))
+    assert out["judge"]["indeterminate"] is False

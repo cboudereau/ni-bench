@@ -213,11 +213,16 @@ def run_trial(
     max_user_turns: int = MAX_USER_TURNS,
 ) -> TrialResult:
     trial_dir = results_root / scenario.id / arm.name / trial_id
-    # resume: a saved result makes the trial a no-op, so an interrupted
-    # matrix can be relaunched into the same run folder without re-spending
+    # resume: a saved determinate result makes the trial a no-op, so an
+    # interrupted matrix can be relaunched into the same run folder without
+    # re-spending; an indeterminate one (timeout, 429, infra error) is wiped
+    # and retried fresh
     saved = trial_dir / "result.json"
     if saved.exists():
-        return TrialResult.from_dict(json.loads(saved.read_text(encoding="utf-8")))
+        prior = TrialResult.from_dict(json.loads(saved.read_text(encoding="utf-8")))
+        if prior.verdict != Verdict.INDETERMINATE:
+            return prior
+        shutil.rmtree(trial_dir)
     workspace = trial_dir / "workspace"
     home = trial_dir / "home"  # persists session state across compose runs
     sim_home = trial_dir / "sim-home"
