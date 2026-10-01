@@ -2,7 +2,7 @@
 
 Benchmark comparing Claude Code plugins (baseline, openspec, superpowers, ni) on 7 scenarios in isolated Docker arms, with a blind LLM judge, a simulated user, and deterministic post-checks. Integrated 2026-10-01.
 
-Deliverables are per-run local artifacts (git-excluded): each run folder under results/ holds its trials, REPORT.md, and ANALYSIS.md. Setup: [SETUP.md](../../SETUP.md).
+Deliverables are per-run local artifacts (git-excluded): each run folder under results/ holds its trials, REPORT.md, and ANALYSIS.md. Setup and usage: [README.md](../../README.md).
 
 ## Design
 
