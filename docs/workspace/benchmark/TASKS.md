@@ -218,9 +218,9 @@ classDiagram
 **Tests**: none new — deterministic checks already in place
 **Verify**: `./scripts/run.sh matrix && ./scripts/cost-check.sh && ./scripts/report.sh && test -s ANALYSIS.md`
 **Acceptance criteria**:
-- [ ] REPORT.md: 7 scenario tables, all KPI rows, origin tags, metadata header complete
-- [ ] ANALYSIS.md: all four FR9 sections present; every claim references a REPORT.md cell or trial dir
-- [ ] Indeterminate rate ≤ 20% of trials; sum cost within cap (or partial explicitly marked)
+- [x] REPORT.md: 7 scenario tables, all KPI rows, origin tags, metadata header complete — rendered from `results/matrix-v2` (84 trials, n=3), double-render byte-identical (NFR3)
+- [x] ANALYSIS.md: all four FR9 sections present; every claim references a REPORT.md cell or trial dir
+- [x] Indeterminate rate ≤ 20% of trials (0/84); sum cost within cap (10.81 USD reported run; +11.25 USD for the discarded no-pytest run, see ANALYSIS.md disclosures)
 **Depends on**: task 7
 **Time-box**: ~90 min active (wall-clock longer, matrix runs unattended)
 
