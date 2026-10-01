@@ -13,8 +13,10 @@ import pytest
 from harness.blind import ARM_WORKSPACE, REDACTED, blind
 from harness.executor import ExecResult
 from harness.judge import (
+    JUDGE_HOME_MOUNT,
     JUDGE_MODEL,
     JUDGE_QUALITY_FLOOR,
+    PROMPT_FILENAME,
     assemble_judge_input,
     combine_verdict,
     judge_command,
@@ -160,17 +162,32 @@ GOOD_SCORE = '{"plan_quality": 82, "verbosity_score": 64, "outcome_notes": "soli
 
 
 class ScriptedExecutor:
-    def __init__(self, outputs):
+    """Captures each call's argv and the prompt-file content at call time
+    (the prompt travels via file + stdin since the Errno 7 fix)."""
+
+    def __init__(self, outputs, prompt_file: Path | None = None):
         self.outputs = list(outputs)
         self.calls = []
+        self.prompts = []
+        self.prompt_file = prompt_file
 
     def __call__(self, cmd, timeout_s):
         self.calls.append(list(cmd))
+        if self.prompt_file is None:
+            # locate the mounted home from the -v host:container pair
+            vol = next(
+                (c.split(":")[0] for c in cmd if c.endswith(JUDGE_HOME_MOUNT)), None
+            )
+            path = Path(vol) / PROMPT_FILENAME if vol else None
+        else:
+            path = self.prompt_file
+        self.prompts.append(
+            path.read_text(encoding="utf-8") if path and path.exists() else ""
+        )
         return self.outputs.pop(0)
 
     def prompt(self, i):
-        cmd = self.calls[i]
-        return cmd[cmd.index("-p") + 1]
+        return self.prompts[i]
 
 
 def make_trial_dir(tmp_path: Path, *, arm: str = "ni", postcheck_ok: bool = True) -> Path:
@@ -316,11 +333,28 @@ def test_low_plan_quality_fails_when_postcheck_passes(tmp_path):
 
 
 def test_judge_command_runs_in_harness_service_with_fixed_model(tmp_path):
-    cmd = judge_command("blinded input", home_dir=tmp_path / "home")
+    cmd = judge_command(home_dir=tmp_path / "home")
     assert cmd[:6] == ["docker", "compose", "run", "--rm", "--no-deps", "-T"]
     assert "harness" in cmd
-    assert cmd[cmd.index("--model") + 1] == JUDGE_MODEL == "claude-sonnet-5-5"
-    assert cmd[cmd.index("-p") + 1] == "blinded input"
+    shell = cmd[-1]
+    assert f"--model {JUDGE_MODEL}" in shell
+    assert JUDGE_MODEL == "claude-sonnet-5-5"
+    # prompt travels via a file in the mounted HOME, never argv (Errno 7 fix)
+    assert f"< {JUDGE_HOME_MOUNT}/{PROMPT_FILENAME}" in shell
+    assert all(len(part) < 10_000 for part in cmd)
+
+
+def test_judge_trial_writes_prompt_file_not_argv(tmp_path):
+    trial = make_trial_dir(tmp_path)
+    ex = ScriptedExecutor([ExecResult(0, judge_cli(GOOD_SCORE))])
+    judge_trial(trial, executor=ex)
+    prompt_file = trial / "judge" / "home" / PROMPT_FILENAME
+    assert prompt_file.exists()
+    content = prompt_file.read_text(encoding="utf-8")
+    assert content  # prompt persisted for the container to read
+    # the full prompt never appears inline in argv (Errno 7 regression guard)
+    assert all(content not in part for part in ex.calls[0])
+    assert ex.prompts[0] == content
 
 
 # --- judge_results discovery (task 7 wiring) -------------------------------

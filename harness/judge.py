@@ -87,20 +87,22 @@ def assemble_judge_input(
     return blind("\n\n".join(parts))
 
 
-def judge_command(
-    prompt: str, *, home_dir: Path | str, model: str = JUDGE_MODEL
-) -> list[str]:
-    """``claude -p`` in the harness service with its own throwaway HOME."""
+PROMPT_FILENAME = "judge-prompt.txt"
+
+
+def judge_command(*, home_dir: Path | str, model: str = JUDGE_MODEL) -> list[str]:
+    """``claude -p`` in the harness service with its own throwaway HOME.
+
+    The prompt travels as a file inside the mounted HOME and is piped on
+    stdin: a long transcript as a docker argv argument exceeds the kernel
+    exec arg limit (OSError Errno 7 seen on the first full run).
+    """
     cmd = compose_run_command("harness", volumes=((home_dir, JUDGE_HOME_MOUNT),))
     cmd += [
-        "claude",
-        "-p",
-        prompt,
-        "--output-format",
-        "json",
-        "--dangerously-skip-permissions",
-        "--model",
-        model,
+        "sh",
+        "-c",
+        f"claude -p --output-format json --dangerously-skip-permissions "
+        f"--model {model} < {JUDGE_HOME_MOUNT}/{PROMPT_FILENAME}",
     ]
     return cmd
 
@@ -207,8 +209,9 @@ def judge_trial(
     attempts: list[dict] = []
     prompt = judge_input
     for _attempt in (1, 2):  # retry-once rule (blind-llm-judge ADR)
+        (home / PROMPT_FILENAME).write_text(prompt, encoding="utf-8")
         try:
-            result = executor(judge_command(prompt, home_dir=home, model=model), timeout_s)
+            result = executor(judge_command(home_dir=home, model=model), timeout_s)
         except subprocess.TimeoutExpired:
             attempts.append({"error": f"judge timeout after {timeout_s}s"})
             prompt = judge_input + "\n\n" + FORMAT_REMINDER
