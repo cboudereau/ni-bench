@@ -27,7 +27,12 @@ from pathlib import Path
 from harness.cost_guard import CostGuard, threshold_for
 from harness.executor import Executor, compose_run_command, default_executor
 from harness.models import Arm, Scenario, TrialResult, Verdict
-from harness.scenarios import REPO_ROOT, fixture_dir, scenario_arm_files
+from harness.scenarios import (
+    REPO_ROOT,
+    arm_prompt_path,
+    fixture_dir,
+    scenario_arm_files,
+)
 from harness.simulator import SimulatedUser, needs_user_reply
 
 HOME_MOUNT = "/home/node"
@@ -221,7 +226,8 @@ def run_trial(
     _git(workspace, "add", "-A")
     _git(workspace, "commit", "-q", "--allow-empty", "-m", "fixture baseline")
 
-    prompt = (REPO_ROOT / scenario.prompt_path).read_text(encoding="utf-8")
+    # per-arm prompt variant when one exists (explicit-flow-track ADR)
+    prompt = arm_prompt_path(scenario.id, arm.name).read_text(encoding="utf-8")
     simulated_user = SimulatedUser.for_scenario(scenario.id, home_dir=sim_home)
 
     deadline = clock() + timeout_s

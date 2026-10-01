@@ -134,6 +134,16 @@ def test_header_metadata_and_layout():
     assert "PARTIAL" not in rendered
 
 
+def test_main_writes_alternate_output_path(tmp_path):
+    # explicit-flow track: a second CLI arg renders to that file so a side
+    # report never touches the frozen default REPORT.md
+    from harness.report import main
+
+    out = tmp_path / "REPORT-explicit.md"
+    assert main([str(RESULTS), str(out)]) == 0
+    assert out.read_text(encoding="utf-8") == Report.render(RESULTS)
+
+
 def test_partial_matrix_marked(tmp_path):
     results = tmp_path / "results"
     shutil.copytree(RESULTS, results)

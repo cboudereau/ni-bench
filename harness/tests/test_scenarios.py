@@ -12,6 +12,7 @@ from harness.scenarios import (
     PORTED_SCENARIOS,
     REPO_ROOT,
     SCENARIOS,
+    arm_prompt_path,
     fixture_dir,
     scenario_arm_files,
     scenario_dir,
@@ -119,6 +120,35 @@ def test_debug_complex_wrong_fix_passes_visible_fails_hidden(tmp_path):
 def test_plan_fixture_has_no_markdown():
     """plan-easy postcheck counts any produced .md as the plan artifact."""
     assert not list(fixture_dir("plan-easy").rglob("*.md"))
+
+
+# --- explicit-flow prompt variants (explicit-flow-track ADR) ---------------
+
+PLUGIN_ARMS = ("ni", "openspec", "superpowers")
+
+
+def test_arm_prompt_falls_back_to_shared_prompt():
+    # baseline is the control: no variant file, ever
+    for sid in SCENARIO_IDS:
+        assert arm_prompt_path(sid, "baseline") == scenario_dir(sid) / "prompt.md"
+    # non-plan scenarios have no variants for any arm
+    for arm in PLUGIN_ARMS:
+        assert arm_prompt_path("debug-easy", arm) == scenario_dir("debug-easy") / "prompt.md"
+
+
+def test_arm_prompt_prefers_arm_variant_for_plan_family():
+    for sid in ("plan-easy", "plan-complex"):
+        base = (scenario_dir(sid) / "prompt.md").read_text(encoding="utf-8")
+        for arm in PLUGIN_ARMS:
+            path = arm_prompt_path(sid, arm)
+            assert path == scenario_dir(sid) / f"prompt-{arm}.md", f"{sid}/{arm}"
+            variant = path.read_text(encoding="utf-8")
+            # same instruction shape: the control prompt plus exactly one
+            # appended workflow line naming only this arm's own tool
+            assert variant.startswith(base.rstrip("\n")), f"{sid}/{arm} diverges from control"
+            extra = variant[len(base.rstrip("\n")):].strip()
+            assert len(extra.splitlines()) == 1, f"{sid}/{arm}: more than one extra line"
+            assert "workflow" in extra, f"{sid}/{arm}: extra line does not name a workflow"
 
 
 def test_repo_root_points_at_worktree():

@@ -227,6 +227,22 @@ def test_matrix_json_records_n_and_date(tmp_path):
     assert re.fullmatch(r"\d{4}-\d{2}-\d{2}", marker["date"])
 
 
+def test_run_trial_sends_arm_prompt_variant(tmp_path):
+    # explicit-flow-track ADR: an arm with a prompt variant gets it verbatim;
+    # the baseline control keeps the shared prompt.
+    from harness.scenarios import arm_prompt_path
+
+    ni_arm = next(a for a in ARMS if a.artifact_glob == "docs/workspace/**/*.md")
+    for arm in (ni_arm, BASELINE):
+        ex = Scripted(subject=[cli_json(COMPLETION)])
+        run_trial(arm, PLAN_EASY, "t1", results_root=tmp_path / arm.name, executor=ex)
+        first = next(cmd for cmd, _ in ex.calls if kind(cmd) == "subject")
+        sent = first[first.index("-p") + 1]
+        expected = arm_prompt_path(PLAN_EASY.id, arm.name).read_text(encoding="utf-8")
+        assert sent == expected, f"{arm.name} got the wrong prompt"
+    assert arm_prompt_path(PLAN_EASY.id, ni_arm.name).name != "prompt.md"
+
+
 def test_plan_artifacts_outside_arm_glob_still_captured(tmp_path):
     # smoke-run measurement gap (task 7): 3 of 4 arms wrote the plan at the
     # workspace root, outside their conventional glob, yielding plan_words=0

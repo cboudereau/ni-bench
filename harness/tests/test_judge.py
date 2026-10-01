@@ -15,6 +15,7 @@ from harness.executor import ExecResult
 from harness.judge import (
     JUDGE_MODEL,
     JUDGE_QUALITY_FLOOR,
+    assemble_judge_input,
     combine_verdict,
     judge_command,
     judge_results,
@@ -86,6 +87,24 @@ def test_blind_replacement_token_is_neutral():
 def test_blind_is_pure_and_idempotent():
     once = blind(ADVERSARIAL_SAMPLES[0])
     assert blind(once) == once
+
+
+def test_explicit_flow_prompt_variants_blind_clean():
+    # explicit-flow-track ADR: each per-arm prompt variant names its own
+    # plugin workflow; the blinding transform must strip every identifier
+    # before the text can reach the judge (via transcript echoes).
+    from harness.scenarios import arm_prompt_path
+
+    for sid in ("plan-easy", "plan-complex"):
+        for arm in ("ni", "openspec", "superpowers"):
+            text = arm_prompt_path(sid, arm).read_text(encoding="utf-8")
+            assert NFR4_PATTERN.search(text), f"{sid}/{arm}: variant names no plugin?"
+            assert not NFR4_PATTERN.search(blind(text)), f"{sid}/{arm} leaks after blinding"
+            # a transcript quoting the variant line is also clean end to end
+            quoted = assemble_judge_input(
+                "prompt", "criteria", f"ASSISTANT:\nFollowing the instruction: {text}", {}
+            )
+            assert not NFR4_PATTERN.search(quoted), f"{sid}/{arm} leaks via judge input"
 
 
 # --- verdict combination -------------------------------------------------

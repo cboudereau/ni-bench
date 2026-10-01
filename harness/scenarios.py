@@ -47,6 +47,19 @@ def scenario_dir(scenario_id: str) -> Path:
     return REPO_ROOT / "scenarios" / scenario_id
 
 
+def arm_prompt_path(scenario_id: str, arm_name: str) -> Path:
+    """Prompt sent to this arm (explicit-flow-track ADR).
+
+    ``scenarios/<id>/prompt-<arm>.md`` when it exists - the control prompt
+    plus one line naming the arm's own canonical workflow - otherwise the
+    shared ``prompt.md``. Baseline never has a variant: it is the control.
+    """
+    override = scenario_dir(scenario_id) / f"prompt-{arm_name}.md"
+    if override.is_file():
+        return override
+    return scenario_dir(scenario_id) / "prompt.md"
+
+
 def fixture_dir(scenario_id: str) -> Path | None:
     if scenario_id not in FIXTURE_SCENARIOS:
         return None

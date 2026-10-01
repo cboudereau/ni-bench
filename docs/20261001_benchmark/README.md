@@ -16,6 +16,7 @@ Deliverables are per-run local artifacts (git-excluded): each run folder under r
 - [KPI set and scoring normalisation](adrs/kpi-scoring.md)
 - [Per-plugin verbosity policy](adrs/verbosity-policy.md)
 - [Simulated user for multi-turn interaction](adrs/simulated-user.md)
+- [Explicit-flow follow-up track (per-arm prompt variants)](adrs/explicit-flow-track.md)
 
 ## Audit
 
