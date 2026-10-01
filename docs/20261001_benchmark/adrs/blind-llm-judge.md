@@ -3,7 +3,7 @@ status: accepted
 ---
 # Blind LLM judge plus deterministic checks
 
-Addresses: [FR5](../DESIGN.md#fr5), [NFR4](../DESIGN.md#nfr4)
+Addresses: [FR5](../designs/benchmark.md#fr5), [NFR4](../designs/benchmark.md#nfr4)
 
 ## Problem
 

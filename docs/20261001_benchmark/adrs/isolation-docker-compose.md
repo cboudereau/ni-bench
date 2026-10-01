@@ -3,7 +3,7 @@ status: accepted
 ---
 # Isolation: docker compose with throwaway HOME per trial
 
-Addresses: [FR1](../DESIGN.md#fr1), [NFR1](../DESIGN.md#nfr1)
+Addresses: [FR1](../designs/benchmark.md#fr1), [NFR1](../designs/benchmark.md#nfr1)
 
 ## Problem
 
@@ -19,7 +19,7 @@ Each arm must run Claude Code with exactly one plugin (or none), with no leakage
 
 ## Decision
 
-Option A. One `Dockerfile.<arm>` per arm from a common base (node + pinned Claude Code CLI). Plugin install at build time: `claude plugin marketplace add <repo>` + `claude plugin install <name>` for superpowers and ni; `npm install -g @fission-ai/openspec` for openspec (it is a CLI, not a plugin — `openspec init` runs per trial on the fixture copy). Per trial: fresh tmpfs-backed `$HOME`, fixture copied in, only `ANTHROPIC_API_KEY` passed as env, no host mounts except the trial directory. Fallback if `claude plugin install` resists build-time non-interactive use: COPY a pinned git clone into the image plugin cache path (time-boxed in DESIGN.md rabbit holes).
+Option A. One `Dockerfile.<arm>` per arm from a common base (node + pinned Claude Code CLI). Plugin install at build time: `claude plugin marketplace add <repo>` + `claude plugin install <name>` for superpowers and ni; `npm install -g @fission-ai/openspec` for openspec (it is a CLI, not a plugin — `openspec init` runs per trial on the fixture copy). Per trial: fresh tmpfs-backed `$HOME`, fixture copied in, only `ANTHROPIC_API_KEY` passed as env, no host mounts except the trial directory. Fallback if `claude plugin install` resists build-time non-interactive use: COPY a pinned git clone into the image plugin cache path (time-boxed in the design doc rabbit holes).
 
 ## Consequences
 

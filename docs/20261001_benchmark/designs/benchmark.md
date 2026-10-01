@@ -24,10 +24,10 @@ Seven scenarios — five home-grown across two skill families plus one build tas
 | `ported-debug` | debug | medium | superpowers-evals | Conversation-style debugging under user pressure for a quick fix |
 | `ported-build` | build | complex | superpowers-evals | Scaled-down `sdd-*` end-to-end build with hidden planted-defect checks |
 
-Each scenario ships: prompt file, fixture project (with green test baseline), private acceptance criteria (withheld from the subject agent), and deterministic post-checks. Ported scenarios carry their origin tag into the report; adaptation and licence rules in the [scenario-matrix ADR](./adrs/scenario-matrix.md).
+Each scenario ships: prompt file, fixture project (with green test baseline), private acceptance criteria (withheld from the subject agent), and deterministic post-checks. Ported scenarios carry their origin tag into the report; adaptation and licence rules in the [scenario-matrix ADR](../adrs/scenario-matrix.md).
 
 ### <a id="fr3"></a>FR3 — Per-plugin verbosity policy
-ni arm: terse `full`, seeded by writing `full` to `$HOME/.claude/ni/terse` in the throwaway home before launch. OpenSpec and superpowers: no verbosity option exists (verified — see [verbosity-policy ADR](./adrs/verbosity-policy.md)), so they run at their defaults. Baseline: default Claude Code style.
+ni arm: terse `full`, seeded by writing `full` to `$HOME/.claude/ni/terse` in the throwaway home before launch. OpenSpec and superpowers: no verbosity option exists (verified — see [verbosity-policy ADR](../adrs/verbosity-policy.md)), so they run at their defaults. Baseline: default Claude Code style.
 
 ### <a id="fr4"></a>FR4 — KPI capture
 Each trial runs `claude -p "<scenario prompt>" --output-format json --dangerously-skip-permissions` inside the arm container, plus any [FR8](#fr8) resume turns. Captured per trial, summed across all subject turns: `total_cost_usd`, input/output token usage, `duration_ms`, `num_turns` from the CLI JSON results, plus `user_turns` and artifact metrics computed from produced files: plan word count (per-arm artifact glob), files created, tests passing after run. Simulator usage is recorded separately and never enters subject KPIs.
@@ -42,7 +42,7 @@ The report generator (`harness` Python package, invoked via `./scripts/report.sh
 `n` trials per arm×scenario, configurable (default 1 for smoke, 3 for the reported matrix). Aggregation uses median for raw KPIs, pass-rate for outcomes. Indeterminate trials are excluded from medians and reported separately.
 
 ### <a id="fr8"></a>FR8 — Simulated user for multi-turn interaction
-Plugins under test are interactive (plan-mode approval, clarifying questions, ADR ratification). A simulated user in a dedicated plugin-free `harness` compose service (fixed cheap model, per-scenario user brief identical across arms) answers the subject's questions and approval gates; the subject resumes via `claude -p --resume`, capped at 6 user turns. Simulator answers come only from the brief; unanswerable questions get "your call, decide and continue". Simulator spend counts toward the cost cap but not toward subject KPIs; `user_turns` becomes a KPI. See [simulated-user ADR](./adrs/simulated-user.md).
+Plugins under test are interactive (plan-mode approval, clarifying questions, ADR ratification). A simulated user in a dedicated plugin-free `harness` compose service (fixed cheap model, per-scenario user brief identical across arms) answers the subject's questions and approval gates; the subject resumes via `claude -p --resume`, capped at 6 user turns. Simulator answers come only from the brief; unanswerable questions get "your call, decide and continue". Simulator spend counts toward the cost cap but not toward subject KPIs; `user_turns` becomes a KPI. See [simulated-user ADR](../adrs/simulated-user.md).
 
 ### <a id="fr9"></a>FR9 — Analysis and recommendations
 The generated REPORT.md stays pure numbers ([NFR3](#nfr3)). A companion ANALYSIS.md, written once after the matrix (orchestrator work, reviewed by the human), delivers the interpretation:
@@ -86,7 +86,7 @@ The bias reasoning follows the ni `bias-analysis` method (sponsor bias, selectio
 
 - **Plugin install inside image build**: marketplace installs need network and a writable `$HOME` at build time. Cap: if `claude plugin install` resists non-interactive build, fall back to COPYing a cloned plugin repo into the image's plugin cache path; time-box 60 min.
 - **Judge rubric tuning**: endless prompt iteration possible. Cap: one calibration pass on the smoke run, then freeze the rubric for the reported matrix.
-- **KPI normalisation debates**: settled once in the [kpi-scoring ADR](./adrs/kpi-scoring.md); the report never invents a new formula.
+- **KPI normalisation debates**: settled once in the [kpi-scoring ADR](../adrs/kpi-scoring.md); the report never invents a new formula.
 - **OpenSpec non-plugin nature**: it is an npm CLI, not a marketplace plugin. Do not try to wrap it as a plugin; install the CLI and run `openspec init` on the fixture, use its `/opsx:*` commands. Cap: if `/opsx:` commands fail headless, invoke the generated command markdown content directly as the prompt prefix; time-box 45 min.
 
 ## Failure modes
@@ -141,12 +141,12 @@ Trust boundary: the arm containers run untrusted-quality model output with `--da
 Flow per trial: `run.sh` picks (arm, scenario, trial-id) → creates fresh trial dir (fixture copy + throwaway HOME) → `docker compose run <arm>` executes `claude -p` with the scenario prompt → while the final message asks a question or awaits approval (cap 6), the simulated user (`harness` service, [FR8](#fr8)) generates the next message and the subject resumes via `claude -p --resume` → runner saves CLI JSON, produced files, git diff of fixture → post-checks run in-container (test suite) → judge (`harness` service) scores blinded transcript+artifacts → `result.json` written → `report.sh` renders REPORT.md.
 
 Decisions:
-- [Isolation: docker compose with throwaway HOME](./adrs/isolation-docker-compose.md)
-- [Blind LLM judge plus deterministic checks](./adrs/blind-llm-judge.md)
-- [Scenario matrix](./adrs/scenario-matrix.md)
-- [KPI set and scoring normalisation](./adrs/kpi-scoring.md)
-- [Per-plugin verbosity policy](./adrs/verbosity-policy.md)
-- [Simulated user for multi-turn interaction](./adrs/simulated-user.md)
+- [Isolation: docker compose with throwaway HOME](../adrs/isolation-docker-compose.md)
+- [Blind LLM judge plus deterministic checks](../adrs/blind-llm-judge.md)
+- [Scenario matrix](../adrs/scenario-matrix.md)
+- [KPI set and scoring normalisation](../adrs/kpi-scoring.md)
+- [Per-plugin verbosity policy](../adrs/verbosity-policy.md)
+- [Simulated user for multi-turn interaction](../adrs/simulated-user.md)
 
 ## Data & migration
 

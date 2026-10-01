@@ -3,7 +3,7 @@ status: accepted
 ---
 # KPI set and scoring normalisation
 
-Addresses: [FR4](../DESIGN.md#fr4), [FR6](../DESIGN.md#fr6), [FR7](../DESIGN.md#fr7), [NFR3](../DESIGN.md#nfr3)
+Addresses: [FR4](../designs/benchmark.md#fr4), [FR6](../designs/benchmark.md#fr6), [FR7](../designs/benchmark.md#fr7), [NFR3](../designs/benchmark.md#nfr3)
 
 ## Problem
 

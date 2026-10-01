@@ -3,7 +3,7 @@ status: accepted
 ---
 # Per-plugin verbosity policy
 
-Addresses: [FR3](../DESIGN.md#fr3)
+Addresses: [FR3](../designs/benchmark.md#fr3)
 
 ## Problem
 
