@@ -21,31 +21,9 @@ Option A, subscription token (bills your Claude plan). `claude setup-token` is i
    ```
 2. A browser window opens. Approve the authorisation, copy the code shown, and paste it back into the terminal when prompted.
 3. The command prints a long-lived token starting with `sk-ant-oat01-`. Copy it.
-4. Write the `.env` file (replace the placeholder):
-   ```bash
-   printf 'CLAUDE_CODE_OAUTH_TOKEN=%s\n' 'sk-ant-oat01-PASTE-HERE' > .env
-   chmod 600 .env
-   ```
-5. Verify — must print `1`:
-   ```bash
-   grep -c 'sk-ant-oat01' .env
-   ```
-
-Option B, Console API key (pay per token):
-
+4. Write the `.env` file:
 ```bash
-printf 'ANTHROPIC_API_KEY=%s\n' 'sk-ant-api...' > .env
-chmod 600 .env
-```
-
-Keep the token out of shared terminals and transcripts. Rotate it after the benchmark if the machine is shared.
-
-Build and verify (no API spend):
-
-```bash
-uv run pytest && uv run ruff check harness/   # unit suite, no docker, no API
-docker compose build                           # base + 4 arm images + harness service
-./scripts/check-isolation.sh                   # no host config leaks
+CLAUDE_CODE_OAUTH_TOKEN=<TOKEN>
 ```
 
 ## 2. How to run the benchmark
@@ -66,6 +44,31 @@ The run folder `.reports/run-<timestamp>/` receives:
 - `ANALYSIS.md` stub (the reading — see section 3)
 
 All run outputs are local and git-excluded. Live trials bill real API spend; the cost guard stops the matrix at 50 × n USD and marks the report partial.
+
+Each finished trial prints one progress line to stdout:
+
+```
+[12/84] plan-easy/ni/trial-02: pass (0.08 USD, total 1.15 USD)
+```
+
+Foreground runs stream it in the shell; a detached run exposes it with `tail -f` on its log file.
+
+### Resuming an interrupted run
+
+`bench.sh` always starts a fresh timestamped folder. To continue an interrupted or partially failed run instead:
+
+```bash
+./scripts/resume-run.sh .reports/run-<timestamp> [n]   # n defaults to 3
+```
+
+Resume semantics (no double spend):
+
+- a trial with a determinate saved verdict (`pass`/`fail`) replays as a free no-op
+- an indeterminate trial (timeout, API 429, infra error) is wiped and retried live
+- judging skips already-scored trials; an indeterminate judgment (parse failure, timeout, 429) is re-judged
+- REPORT.md re-renders and the cost check reruns at the end
+
+Typical case: the subscription session limit (API 429) kills trials mid-matrix — wait for the limit reset, then one `resume-run.sh` call repairs only the broken cells.
 
 Extra checks:
 
