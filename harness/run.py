@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import sys
 from collections.abc import Sequence
+from pathlib import Path
 
 from harness.arms import ARMS
 from harness.runner import run_matrix
@@ -20,6 +21,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="harness.run", description=__doc__)
     parser.add_argument("mode", choices=["smoke", "matrix"])
     parser.add_argument("--n", type=int, default=None, help="trials per arm x scenario")
+    parser.add_argument(
+        "--results-root",
+        type=Path,
+        default=None,
+        help="per-run results directory (default: results/)",
+    )
     args = parser.parse_args(argv)
 
     if args.mode == "smoke":
@@ -29,7 +36,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         scenarios = list(SCENARIOS)
         n = args.n or 3
 
-    result = run_matrix(ARMS, scenarios, n, results_root=REPO_ROOT / "results")
+    results_root = args.results_root or REPO_ROOT / "results"
+    result = run_matrix(ARMS, scenarios, n, results_root=results_root)
     status = "PARTIAL (cost guard)" if result.partial else "complete"
     print(
         f"{args.mode}: {len(result.trials)} trials, "

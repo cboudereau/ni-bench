@@ -50,19 +50,22 @@ docker compose build                           # base + 4 arm images + harness
 ./scripts/check-isolation.sh                   # no host config leaks, no API calls
 ```
 
-## 3. Run
+## 3. Run — one command per benchmark run
 
 ```bash
-./scripts/run.sh smoke    # plan-easy, 4 arms, n=1 — first live spend, a few USD
-./scripts/run.sh matrix   # 7 scenarios, 4 arms, n=3 (BENCH_N overrides) — cost guard 50 x n USD
+./scripts/bench.sh            # full matrix, 4 arms x 7 scenarios, n=3 — cost guard 50 x n USD
+BENCH_N=1 ./scripts/bench.sh  # cheaper full matrix
+./scripts/bench.sh smoke      # plan-easy only, n=1 — a few USD
 ```
 
-## 4. Report
+Each run gets its own folder `results/run-<timestamp>/` containing the trial dirs, matrix.json, the rendered REPORT.md, and an ANALYSIS.md stub to fill (FR9 reading). All run outputs are local and git-excluded.
+
+## 4. Extra checks
 
 ```bash
-./scripts/report.sh        # renders REPORT.md from results/
-./scripts/cost-check.sh    # spend vs cap
-./scripts/check-blinding.sh
+./scripts/cost-check.sh results/run-<timestamp>   # spend vs cap
+./scripts/check-blinding.sh                       # judge inputs carry no arm identifiers
+./scripts/check-isolation.sh                      # no host config leaks
 ```
 
 Plan, ADRs, and task breakdown: `docs/workspace/benchmark/`.
