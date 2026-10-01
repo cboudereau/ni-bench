@@ -245,10 +245,10 @@ Tasks: 7, 8
 **Commit point**: yes
 
 ## Quality gates (post-session review)
-- [ ] Acceptance criteria: all green above
-- [ ] Code review: implementation matches [DESIGN.md](./DESIGN.md) intent
-- [ ] Code organization: file placement, module structure, naming conventions
-- [ ] Code quality: no new complexity, clean types, no duplication
-- [ ] Security review: no API key in images, logs, results, or commits; arm containers have no host mounts beyond trial dir
-- [ ] Observability: every trial re-triageable from its dir without re-running
-- [ ] Performance: N/A — offline batch harness; cost cap is the budget NFR
+- [x] Acceptance criteria: all green above
+- [x] Code review: implementation matches [DESIGN.md](./DESIGN.md) intent
+- [x] Code organization: file placement, module structure, naming conventions
+- [x] Code quality: no new complexity, clean types, no duplication
+- [x] Security review: no API key in images, logs, results, or commits; arm containers have no host mounts beyond trial dir
+- [x] Observability: every trial re-triageable from its dir without re-running
+- [x] Performance: N/A — offline batch harness; cost cap is the budget NFR
