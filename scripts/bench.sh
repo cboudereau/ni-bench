@@ -18,6 +18,15 @@ export PATH="$HOME/.local/bin:$PATH"
 # (FROM ni-bench-base), so a pruned docker store would fail every trial.
 docker image inspect ni-bench-base >/dev/null 2>&1 || ./scripts/build.sh
 
+# NI_SOURCE=local (unpublished ni staged by scripts/stage-ni-local.sh): record
+# the real build label in matrix.json so the report header never lies about
+# the marketplace pin (runner writes it; the renderer stays pure, NFR3)
+if [ "${NI_SOURCE:-marketplace}" = "local" ]; then
+  LABEL="$(cat arms/ni-local/version-label.txt)"
+  export BENCH_PLUGIN_OVERRIDES="{\"ni\": \"$LABEL\"}"
+  echo "ni arm: local build $LABEL"
+fi
+
 MODE="${1:-matrix}"
 N="${BENCH_N:-3}"
 [ "$MODE" = "smoke" ] && N="${BENCH_N:-1}"

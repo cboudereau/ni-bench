@@ -218,6 +218,44 @@ def test_matrix_completes_under_threshold(tmp_path):
     assert len(matrix.trials) == len(ARMS)
 
 
+def test_matrix_json_records_plugin_overrides(tmp_path):
+    # NI_SOURCE=local: the RUN records the real plugin build in matrix.json;
+    # the renderer stays pure (NFR3) and reads it like n/date
+    ex = Scripted(default_subject=cli_json(COMPLETION, cost=0.05))
+    run_matrix(
+        ARMS, [PLAN_EASY], 1, results_root=tmp_path, executor=ex, threshold_usd=50.0,
+        plugin_overrides={"ni": "1.7.0+local.3a0be93"},
+    )
+    marker = json.loads((tmp_path / "matrix.json").read_text())
+    assert marker["plugin_overrides"] == {"ni": "1.7.0+local.3a0be93"}
+
+
+def test_matrix_json_omits_plugin_overrides_by_default(tmp_path):
+    # marketplace runs keep the historical matrix.json shape
+    ex = Scripted(default_subject=cli_json(COMPLETION, cost=0.05))
+    run_matrix(ARMS, [PLAN_EASY], 1, results_root=tmp_path, executor=ex, threshold_usd=50.0)
+    marker = json.loads((tmp_path / "matrix.json").read_text())
+    assert "plugin_overrides" not in marker
+
+
+def test_plugin_overrides_from_env():
+    from harness.runner import plugin_overrides_from_env
+
+    env = {"BENCH_PLUGIN_OVERRIDES": '{"ni": "1.7.0+local.3a0be93"}'}
+    assert plugin_overrides_from_env(env) == {"ni": "1.7.0+local.3a0be93"}
+    assert plugin_overrides_from_env({}) is None
+
+
+def test_plugin_overrides_from_env_rejects_garbage():
+    # fail fast: a typoed override must stop the run, not silently mislabel it
+    from harness.runner import plugin_overrides_from_env
+
+    with pytest.raises(ValueError):
+        plugin_overrides_from_env({"BENCH_PLUGIN_OVERRIDES": "not json"})
+    with pytest.raises(ValueError):
+        plugin_overrides_from_env({"BENCH_PLUGIN_OVERRIDES": '["ni"]'})
+
+
 def test_matrix_json_records_n_and_date(tmp_path):
     # the report header reads n and date from matrix.json, never the wall clock (NFR3)
     ex = Scripted(default_subject=cli_json(COMPLETION, cost=0.05))

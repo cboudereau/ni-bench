@@ -392,6 +392,29 @@ class MatrixResult:
     spent_usd: float
 
 
+def plugin_overrides_from_env(environ: dict[str, str]) -> dict[str, str] | None:
+    """``BENCH_PLUGIN_OVERRIDES`` -> {plugin: version label}, or None if unset.
+
+    Set by scripts/bench.sh when NI_SOURCE=local so the report header names
+    the real build instead of the marketplace pin. Garbage fails fast: a
+    mislabelled run is worse than a stopped one.
+    """
+    raw = environ.get("BENCH_PLUGIN_OVERRIDES")
+    if raw is None:
+        return None
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"BENCH_PLUGIN_OVERRIDES is not valid JSON: {raw!r}") from exc
+    if not isinstance(parsed, dict) or not all(
+        isinstance(k, str) and isinstance(v, str) for k, v in parsed.items()
+    ):
+        raise ValueError(
+            f"BENCH_PLUGIN_OVERRIDES must be a JSON object of strings: {raw!r}"
+        )
+    return parsed
+
+
 def run_matrix(
     arms: Sequence[Arm],
     scenarios: Sequence[Scenario],
@@ -402,6 +425,7 @@ def run_matrix(
     threshold_usd: float | None = None,
     clock: Callable[[], float] = time.monotonic,
     timeout_s: float = TRIAL_TIMEOUT_S,
+    plugin_overrides: dict[str, str] | None = None,
 ) -> MatrixResult:
     """All (scenario, arm, trial) cells; the cost guard stops it, marked partial."""
     guard = CostGuard(threshold_usd if threshold_usd is not None else threshold_for(n))
@@ -448,6 +472,9 @@ def run_matrix(
                 # run date recorded once here; the report reads it from
                 # matrix.json, never the wall clock (NFR3)
                 "date": datetime.now(UTC).date().isoformat(),
+                # NI_SOURCE=local: the run, not the renderer, records the
+                # real plugin build; absent on marketplace runs
+                **({"plugin_overrides": plugin_overrides} if plugin_overrides else {}),
             },
             indent=2,
         ),

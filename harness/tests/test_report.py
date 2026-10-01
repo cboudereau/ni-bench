@@ -177,6 +177,21 @@ def test_main_writes_alternate_output_path(tmp_path):
     assert out.read_text(encoding="utf-8") == Report.render(RESULTS)
 
 
+def test_plugin_override_in_header(tmp_path):
+    # NI_SOURCE=local: matrix.json carries the real build label; the header
+    # must show it instead of the marketplace pin (still pure render, NFR3)
+    results = tmp_path / "results"
+    shutil.copytree(RESULTS, results)
+    matrix = json.loads((results / "matrix.json").read_text(encoding="utf-8"))
+    matrix["plugin_overrides"] = {"ni": "1.7.0+local.3a0be93"}
+    (results / "matrix.json").write_text(json.dumps(matrix), encoding="utf-8")
+    rendered = Report.render(results)
+    assert "ni 1.7.0+local.3a0be93" in rendered
+    assert "ni 1.7.0," not in rendered
+    # non-overridden pins untouched
+    assert "superpowers 6.4.2" in rendered
+
+
 def test_partial_matrix_marked(tmp_path):
     results = tmp_path / "results"
     shutil.copytree(RESULTS, results)

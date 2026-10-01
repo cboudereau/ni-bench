@@ -225,7 +225,12 @@ class Report:
             + (", ".join(f"{k}={v}" for k, v in sorted(a.verbosity.items())) or "default")
             for a in ARMS
         )
-        plugins = ", ".join(f"{name} {version}" for name, version in PLUGIN_VERSIONS)
+        # NI_SOURCE=local runs record the real build in matrix.json at run
+        # time; the render stays a pure function of the results dir (NFR3)
+        overrides = matrix.get("plugin_overrides", {})
+        plugins = ", ".join(
+            f"{name} {overrides.get(name, version)}" for name, version in PLUGIN_VERSIONS
+        )
         lines += [
             "## Run metadata",
             "",

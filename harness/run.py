@@ -8,12 +8,13 @@ stopped the matrix (results marked partial in <run dir>/matrix.json).
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from collections.abc import Sequence
 from pathlib import Path
 
 from harness.arms import ARMS
-from harness.runner import run_matrix
+from harness.runner import plugin_overrides_from_env, run_matrix
 from harness.scenarios import REPO_ROOT, SCENARIOS
 
 
@@ -37,7 +38,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         n = args.n or 3
 
     results_root = args.results_root or REPO_ROOT / ".reports"
-    result = run_matrix(ARMS, scenarios, n, results_root=results_root)
+    result = run_matrix(
+        ARMS,
+        scenarios,
+        n,
+        results_root=results_root,
+        plugin_overrides=plugin_overrides_from_env(dict(os.environ)),
+    )
     status = "PARTIAL (cost guard)" if result.partial else "complete"
     print(
         f"{args.mode}: {len(result.trials)} trials, "
