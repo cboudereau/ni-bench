@@ -19,7 +19,10 @@ Planning plugins produce artifacts for two audiences: documents humans read (des
 
 ## Decision
 
-Option A, in two stages.
+Option A, in two stages. *Stage 1 implemented (classification, split KPIs,
+rubric v2, offline recompute CLI; run-20261001-154633 re-measured and
+re-judged, v1 judgments archived per trial under `judge-v1/`). Status stays
+proposed pending ratification.*
 
 **Stage 1 — measurement and judging (re-judge of existing runs allowed):**
 - Per-arm artifact classification in `harness/arms.py`: every produced markdown path classed `human` (design docs, ADRs, proposals, plans), `machine` (task checklists, preflight files), or `excluded` (tooling scaffolding: `.claude/**`, generated command/skill files, anything the plugin's init writes unprompted).
