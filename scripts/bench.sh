@@ -14,6 +14,10 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 export PATH="$HOME/.local/bin:$PATH"
 
+# bench.sh assumes nothing about image state: the base image is local-only
+# (FROM ni-bench-base), so a pruned docker store would fail every trial.
+docker image inspect ni-bench-base >/dev/null 2>&1 || ./scripts/build.sh
+
 MODE="${1:-matrix}"
 N="${BENCH_N:-3}"
 [ "$MODE" = "smoke" ] && N="${BENCH_N:-1}"
