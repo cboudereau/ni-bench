@@ -18,12 +18,18 @@ export PATH="$HOME/.local/bin:$PATH"
 # (FROM ni-bench-base), so a pruned docker store would fail every trial.
 docker image inspect ni-bench-base >/dev/null 2>&1 || ./scripts/build.sh
 
-# NI_SOURCE=local (unpublished ni staged by scripts/stage-ni-local.sh): record
-# the real build label in matrix.json so the report header never lies about
-# the marketplace pin (runner writes it; the renderer stays pure, NFR3)
+# Plugin versions are whatever the built images actually hold (images install
+# the latest marketplace release at build time), so read them live and record
+# them in matrix.json; the renderer stays a pure function of the results dir
+# (NFR3) and never trusts a hardcoded pin.
+export BENCH_PLUGIN_OVERRIDES="$(./scripts/plugin-versions.sh)"
+echo "plugin versions: $BENCH_PLUGIN_OVERRIDES"
+
+# NI_SOURCE=local (unpublished ni staged by scripts/stage-ni-local.sh): the
+# honest build label wins over whatever version string the local build claims.
 if [ "${NI_SOURCE:-marketplace}" = "local" ]; then
   LABEL="$(cat arms/ni-local/version-label.txt)"
-  export BENCH_PLUGIN_OVERRIDES="{\"ni\": \"$LABEL\"}"
+  export BENCH_PLUGIN_OVERRIDES="$(printf '%s' "$BENCH_PLUGIN_OVERRIDES" | sed "s|\"ni\": \"[^\"]*\"|\"ni\": \"$LABEL\"|")"
   echo "ni arm: local build $LABEL"
 fi
 

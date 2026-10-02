@@ -22,6 +22,8 @@ from harness.simulator import SIMULATOR_MODEL
 
 # Pins recorded at image build time (arms/Dockerfile.* and their build logs).
 CLI_VERSION = "2.1.285"
+# Fallback only, for runs recorded before scripts/plugin-versions.sh existed:
+# live runs carry the real installed versions in matrix.json plugin_overrides.
 PLUGIN_VERSIONS = (("superpowers", "6.4.2"), ("ni", "1.7.0"), ("openspec", "1.13.2"))
 
 RESOURCE_KPIS = ("tokens_total", "cost_usd", "duration_s", "turns", "user_turns", "plan_words")
