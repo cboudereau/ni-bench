@@ -1,0 +1,2 @@
+# baseline arm: pinned CLI only, no plugin
+FROM ni-bench-base

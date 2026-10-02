@@ -1,0 +1,7 @@
+# superpowers arm: native non-interactive build-time install (isolation-docker-compose ADR).
+# The CLI takes no version pin; the image layer is the pin and the final
+# `plugin list` records the resolved version in the build log (and REPORT.md header).
+FROM ni-bench-base
+RUN HOME=/opt/arm-home claude plugin marketplace add obra/superpowers-marketplace \
+ && HOME=/opt/arm-home claude plugin install superpowers@superpowers-marketplace \
+ && HOME=/opt/arm-home claude plugin list
