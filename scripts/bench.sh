@@ -25,14 +25,6 @@ docker image inspect ni-bench-base >/dev/null 2>&1 || ./scripts/build.sh
 export BENCH_PLUGIN_OVERRIDES="$(./scripts/plugin-versions.sh)"
 echo "plugin versions: $BENCH_PLUGIN_OVERRIDES"
 
-# NI_SOURCE=local (unpublished ni staged by scripts/stage-ni-local.sh): the
-# honest build label wins over whatever version string the local build claims.
-if [ "${NI_SOURCE:-marketplace}" = "local" ]; then
-  LABEL="$(cat arms/ni-local/version-label.txt)"
-  export BENCH_PLUGIN_OVERRIDES="$(printf '%s' "$BENCH_PLUGIN_OVERRIDES" | sed "s|\"ni\": \"[^\"]*\"|\"ni\": \"$LABEL\"|")"
-  echo "ni arm: local build $LABEL"
-fi
-
 MODE="${1:-matrix}"
 N="${BENCH_N:-3}"
 [ "$MODE" = "smoke" ] && N="${BENCH_N:-1}"

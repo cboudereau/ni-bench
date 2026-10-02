@@ -29,9 +29,6 @@ services:
     build:
       context: arms
       dockerfile: Dockerfile.ni
-      args:
-        # local = unpublished checkout staged by scripts/stage-ni-local.sh
-        NI_SOURCE: ${NI_SOURCE:-marketplace}
 
   # simulator + judge; plugin-free, reuses the base image — not a subject arm
   harness:

@@ -1,7 +1,6 @@
 # run artifacts: trials, reports, analyses stay local
 /.reports/
 # NI_SOURCE=local staging area (scripts/stage-ni-local.sh), never committed
-/arms/ni-local/
 .env
 .venv/
 __pycache__/

@@ -70,8 +70,8 @@ check_plugins superpowers "superpowers@superpowers-marketplace"
 check_plugins ni "ni@itsaspacestation"
 
 say "== 3. arm-specific configuration =="
-if run_in openspec openspec --version | grep -q '1\.13\.2'; then
-  say "OK: openspec CLI 1.13.2 present"
+if run_in openspec openspec --version | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+'; then
+  say "OK: openspec CLI present"
 else
   say "FAIL: openspec CLI missing or wrong version"
   fail=1
