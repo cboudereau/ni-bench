@@ -2,7 +2,7 @@
 # `openspec init` runs per trial on the fixture copy, never at build.
 FROM ni-bench-base
 USER root
-RUN npm install -g @fission-ai/openspec@1.13.2
+RUN npm install -g @fission-ai/openspec@latest
 USER node
 # verbosity-policy ADR: telemetry off (not a secret)
 ENV OPENSPEC_TELEMETRY=0

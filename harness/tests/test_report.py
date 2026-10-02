@@ -145,9 +145,9 @@ def test_header_metadata_and_layout():
         "claude-sonnet-5-5",  # judge
         "claude-haiku-4-5-20251001",  # simulator
         "2.1.285",
-        "superpowers 6.4.2",
-        "ni 1.7.0",
-        "openspec 1.13.2",
+        "superpowers latest (n/a)",
+        "ni latest (n/a)",
+        "openspec latest (n/a)",
         "2026-09-29",
         "terse=full",
         "OPENSPEC_TELEMETRY=0",
@@ -187,9 +187,9 @@ def test_plugin_override_in_header(tmp_path):
     (results / "matrix.json").write_text(json.dumps(matrix), encoding="utf-8")
     rendered = Report.render(results)
     assert "ni 1.7.0+local.3a0be93" in rendered
-    assert "ni 1.7.0," not in rendered
-    # non-overridden pins untouched
-    assert "superpowers 6.4.2" in rendered
+    assert "ni latest (n/a)" not in rendered
+    # a plugin without an override is honestly unknown, never a guessed pin
+    assert "superpowers latest (n/a)" in rendered
 
 
 def test_partial_matrix_marked(tmp_path):

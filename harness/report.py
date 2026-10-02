@@ -22,9 +22,11 @@ from harness.simulator import SIMULATOR_MODEL
 
 # Pins recorded at image build time (arms/Dockerfile.* and their build logs).
 CLI_VERSION = "2.1.285"
-# Fallback only, for runs recorded before scripts/plugin-versions.sh existed:
-# live runs carry the real installed versions in matrix.json plugin_overrides.
-PLUGIN_VERSIONS = (("superpowers", "6.4.2"), ("ni", "1.7.0"), ("openspec", "1.13.2"))
+# Live runs carry the real installed versions in matrix.json plugin_overrides
+# (scripts/plugin-versions.sh); a run without them predates that script, and
+# the header says so instead of guessing a version.
+PLUGIN_NAMES = ("superpowers", "ni", "openspec")
+VERSION_UNKNOWN = "latest (n/a)"
 
 RESOURCE_KPIS = ("tokens_total", "cost_usd", "duration_s", "turns", "user_turns", "plan_words")
 # machine layer: reported raw, never scored - its value is scored through
@@ -231,7 +233,7 @@ class Report:
         # time; the render stays a pure function of the results dir (NFR3)
         overrides = matrix.get("plugin_overrides", {})
         plugins = ", ".join(
-            f"{name} {overrides.get(name, version)}" for name, version in PLUGIN_VERSIONS
+            f"{name} {overrides.get(name, VERSION_UNKNOWN)}" for name in PLUGIN_NAMES
         )
         lines += [
             "## Run metadata",
