@@ -148,11 +148,20 @@ def test_header_metadata_and_layout():
         "superpowers latest (n/a)",
         "ni latest (n/a)",
         "openspec latest (n/a)",
+        "mattpocock latest (n/a)",
         "2026-09-29",
         "terse=full",
         "OPENSPEC_TELEMETRY=0",
+        # tracker-seed ADR: the arm runs with no verbosity setting, and the
+        # header discloses the benchmark-authored seed in its HOME
+        "mattpocock: default (no setting); tracker seed in HOME (tracker-seed ADR)",
     ):
         assert needle in rendered, f"header missing: {needle}"
+    # existing arms keep their wording byte-identical (header is published)
+    assert (
+        "| Verbosity config | baseline: default; openspec: OPENSPEC_TELEMETRY=0; "
+        "superpowers: default; ni: terse=full; mattpocock: " in rendered
+    )
     # scenarios in FR2 order, origin-tagged headings
     assert rendered.index("## plan-easy (home-grown)") < rendered.index(
         "## debug-easy (home-grown)"
@@ -183,11 +192,17 @@ def test_plugin_override_in_header(tmp_path):
     results = tmp_path / "results"
     shutil.copytree(RESULTS, results)
     matrix = json.loads((results / "matrix.json").read_text(encoding="utf-8"))
-    matrix["plugin_overrides"] = {"ni": "1.7.0+local.3a0be93"}
+    matrix["plugin_overrides"] = {"ni": "1.7.0+local.3a0be93", "mattpocock": "1.3.1"}
     (results / "matrix.json").write_text(json.dumps(matrix), encoding="utf-8")
     rendered = Report.render(results)
     assert "ni 1.7.0+local.3a0be93" in rendered
     assert "ni latest (n/a)" not in rendered
+    # fourth plugin (scripts/plugin-versions.sh): the header row carries it
+    assert (
+        "| Plugins | superpowers latest (n/a), ni 1.7.0+local.3a0be93, "
+        "openspec latest (n/a), mattpocock 1.3.1 |" in rendered
+    )
+    assert "mattpocock latest (n/a)" not in rendered
     # a plugin without an override is honestly unknown, never a guessed pin
     assert "superpowers latest (n/a)" in rendered
 

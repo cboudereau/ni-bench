@@ -25,8 +25,15 @@ CLI_VERSION = "2.1.285"
 # Live runs carry the real installed versions in matrix.json plugin_overrides
 # (scripts/plugin-versions.sh); a run without them predates that script, and
 # the header says so instead of guessing a version.
-PLUGIN_NAMES = ("superpowers", "ni", "openspec")
+PLUGIN_NAMES = ("superpowers", "ni", "openspec", "mattpocock")
 VERSION_UNKNOWN = "latest (n/a)"
+# Arms with no verbosity setting read "default"; an arm whose HOME carries
+# benchmark-authored text beyond that says so here (tracker-seed ADR: the
+# header discloses the seed, the same asymmetry verbosity-policy discloses
+# for ni's terse seed). Additive only: existing rows stay byte-identical.
+VERBOSITY_NOTES = {
+    "mattpocock": "default (no setting); tracker seed in HOME (tracker-seed ADR)",
+}
 
 RESOURCE_KPIS = ("tokens_total", "cost_usd", "duration_s", "turns", "user_turns", "plan_words")
 # machine layer: reported raw, never scored - its value is scored through
@@ -226,7 +233,10 @@ class Report:
         verbosity = "; ".join(
             a.name
             + ": "
-            + (", ".join(f"{k}={v}" for k, v in sorted(a.verbosity.items())) or "default")
+            + (
+                ", ".join(f"{k}={v}" for k, v in sorted(a.verbosity.items()))
+                or VERBOSITY_NOTES.get(a.name, "default")
+            )
             for a in ARMS
         )
         # NI_SOURCE=local runs record the real build in matrix.json at run

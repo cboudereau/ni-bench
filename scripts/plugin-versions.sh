@@ -18,10 +18,11 @@ plugin_version() { # arm
 NI_V="$(plugin_version ni)"
 SP_V="$(plugin_version superpowers)"
 OS_V="$(docker compose run --rm --no-deps -T openspec openspec --version 2>/dev/null | tr -d ' \r\n')"
+MP_V="$(plugin_version mattpocock)"
 
-[ -n "$NI_V" ] && [ -n "$SP_V" ] && [ -n "$OS_V" ] || {
-  echo "plugin-versions: could not read a version (ni='$NI_V' superpowers='$SP_V' openspec='$OS_V')" >&2
+[ -n "$NI_V" ] && [ -n "$SP_V" ] && [ -n "$OS_V" ] && [ -n "$MP_V" ] || {
+  echo "plugin-versions: could not read a version (ni='$NI_V' superpowers='$SP_V' openspec='$OS_V' mattpocock='$MP_V')" >&2
   exit 1
 }
 
-printf '{"ni": "%s", "superpowers": "%s", "openspec": "%s"}\n' "$NI_V" "$SP_V" "$OS_V"
+printf '{"ni": "%s", "superpowers": "%s", "openspec": "%s", "mattpocock": "%s"}\n' "$NI_V" "$SP_V" "$OS_V" "$MP_V"
