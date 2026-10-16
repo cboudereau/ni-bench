@@ -1,4 +1,4 @@
-# Isolation manifest (isolation-docker-compose ADR): 4 subject arms + harness service.
+# Isolation manifest (isolation-docker-compose ADR): 5 subject arms + harness service.
 # No host ~/.claude or ~/.config mounts, ever. Credential only via env_file .env.
 x-common: &common
   env_file:
@@ -29,6 +29,12 @@ services:
     build:
       context: arms
       dockerfile: Dockerfile.ni
+
+  mattpocock:
+    <<: *common
+    build:
+      context: arms
+      dockerfile: Dockerfile.mattpocock
 
   # simulator + judge; plugin-free, reuses the base image — not a subject arm
   harness:

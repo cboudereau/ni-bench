@@ -1,0 +1,12 @@
+# mattpocock arm: native non-interactive build-time install (isolation-docker-compose ADR).
+# Install source: the author marketplace (skill-mapping ADR, decision J), so the
+# measured version is the author's current release. Version pinning as for
+# superpowers: image layer + build-log `plugin list`.
+FROM ni-bench-base
+RUN HOME=/opt/arm-home claude plugin marketplace add mattpocock/skills \
+ && HOME=/opt/arm-home claude plugin install mattpocock-skills@mattpocock \
+ && HOME=/opt/arm-home claude plugin list
+
+# tracker-seed ADR: entrypoint hook seeds the local-markdown issue-tracker
+# configuration into the throwaway HOME (never the fixture workspace)
+COPY --chmod=755 mattpocock-init.sh /opt/arm-init.d/mattpocock-init.sh
