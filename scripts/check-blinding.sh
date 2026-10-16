@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 # NFR4 blinding check (task 5, blind-llm-judge ADR).
 # Greps every saved judge input for arm identifiers - word-bounded,
-# case-insensitive, the exact measure from DESIGN.md NFR4. Exits 0 when zero
-# matches or when no judge inputs exist yet; prints offending lines otherwise.
+# case-insensitive, the exact measure from DESIGN.md NFR4 - and for the
+# `.scratch/` artifact root, which reveals the arm by structure alone.
+# Exits 0 when zero matches or when no judge inputs exist yet; prints
+# offending lines otherwise.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-pattern='\b(ni|openspec|opsx|superpowers|baseline|natural-intelligence|fission|obra|itsaspacestation|terse)\b'
+pattern='\b(ni|openspec|opsx|superpowers|baseline|natural-intelligence|fission|obra|itsaspacestation|terse|mattpocock|pocock|ask-matt|grill-with-docs|grilling|grill|wayfinder|tracer-bullet)\b|\.scratch/'
 
 inputs=()
 while IFS= read -r file; do

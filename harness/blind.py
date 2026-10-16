@@ -19,20 +19,31 @@ ARM_WORKSPACE = "ARM_WORKSPACE"
 BLOCKLIST: tuple[str, ...] = (
     "natural-intelligence",
     "itsaspacestation",
+    "grill-with-docs",
+    "tracer-bullet",
     "superpowers",
+    "mattpocock",
+    "wayfinder",
     "openspec",
     "baseline",
+    "ask-matt",
+    "grilling",
     "fission",
+    "pocock",
     "terse",
+    "grill",
     "obra",
     "opsx",
     "ni",
 )
 
 # Plugin-specific artifact roots: ni -> docs/workspace, openspec ->
-# openspec/changes, superpowers -> docs/plans (arm registry globs).
+# openspec/changes, superpowers -> docs/plans, mattpocock -> .scratch (arm
+# registry globs). `.scratch` carries no leading \b: the dot is part of the
+# root and no word boundary precedes it.
 _PATH_RE = re.compile(
-    r"\b(?:docs/workspace|openspec/changes|docs/plans)/", re.IGNORECASE
+    r"(?:\b(?:docs/workspace|openspec/changes|docs/plans)|\.scratch)/",
+    re.IGNORECASE,
 )
 _WORD_RE = re.compile(r"\b(?:" + "|".join(BLOCKLIST) + r")\b", re.IGNORECASE)
 

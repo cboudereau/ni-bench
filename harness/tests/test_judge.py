@@ -28,7 +28,8 @@ from harness.models import JudgeScore, TrialResult, Verdict
 # The exact NFR4 measure: zero word-bounded, case-insensitive matches.
 NFR4_PATTERN = re.compile(
     r"\b(ni|openspec|opsx|superpowers|baseline|natural-intelligence"
-    r"|fission|obra|itsaspacestation|terse)\b",
+    r"|fission|obra|itsaspacestation|terse|mattpocock|pocock|ask-matt"
+    r"|grill-with-docs|grilling|grill|wayfinder|tracer-bullet)\b|\.scratch/",
     re.IGNORECASE,
 )
 
@@ -47,11 +48,17 @@ ADVERSARIAL_SAMPLES = [
     "docs/workspace/benchmark/TASKS.md holds the plan",
     "docs/plans/2026-09-30-feature.md written",
     "ni-bench harness, ni.terse=full",
+    "mattpocock-skills@mattpocock installed",
+    "ran /grill-with-docs then /to-spec",
+    ".scratch/json-output/issues/01-wire-flag.md",
+    "Matt Pocock's wayfinder map",
+    "tracer-bullet tickets",
 ]
 
 SURVIVOR_TEXT = (
     "The initial opus showed terseness; a knight paid in nickel "
-    "kept fissionable baselines and openspecial obradoiro plans, opsxy."
+    "kept fissionable baselines and openspecial obradoiro plans, opsxy. "
+    "A grille, a pocket, wayfarer glasses, and a scratchpad."
 )
 
 
@@ -78,6 +85,14 @@ def test_blind_rewrites_plugin_paths_to_neutral_workspace():
         == f"{ARM_WORKSPACE}/benchmark/DESIGN.md"
     )
     assert blind("docs/plans/2026-plan.md") == f"{ARM_WORKSPACE}/2026-plan.md"
+
+
+def test_blind_rewrites_scratch_root():
+    # the dot is part of the root: no word boundary precedes it
+    assert (
+        blind(".scratch/json-output/spec.md")
+        == f"{ARM_WORKSPACE}/json-output/spec.md"
+    )
 
 
 def test_blind_replacement_token_is_neutral():
