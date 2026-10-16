@@ -124,7 +124,7 @@ def test_plan_fixture_has_no_markdown():
 
 # --- explicit-flow prompt variants (explicit-flow-track ADR) ---------------
 
-PLUGIN_ARMS = ("ni", "openspec", "superpowers")
+PLUGIN_ARMS = ("ni", "openspec", "superpowers", "mattpocock")
 
 
 def test_arm_prompt_falls_back_to_shared_prompt():
@@ -137,13 +137,13 @@ def test_arm_prompt_falls_back_to_shared_prompt():
 
 
 def test_arm_prompt_prefers_variant_for_debug_and_build_families():
-    # explicit-flow scope extension: ni and superpowers on debug scenarios,
-    # ni, superpowers, and openspec on build scenarios
+    # explicit-flow scope extension: ni, superpowers, and mattpocock on debug
+    # scenarios; ni, superpowers, openspec, and mattpocock on build scenarios
     for sid in ("debug-easy", "debug-complex", "ported-debug"):
-        for arm in ("ni", "superpowers"):
+        for arm in ("ni", "superpowers", "mattpocock"):
             assert arm_prompt_path(sid, arm) == scenario_dir(sid) / f"prompt-{arm}.md"
     for sid in ("build-small", "ported-build"):
-        for arm in ("ni", "superpowers", "openspec"):
+        for arm in ("ni", "superpowers", "openspec", "mattpocock"):
             assert arm_prompt_path(sid, arm) == scenario_dir(sid) / f"prompt-{arm}.md"
 
 
@@ -160,6 +160,20 @@ def test_arm_prompt_prefers_arm_variant_for_plan_family():
             extra = variant[len(base.rstrip("\n")):].strip()
             assert len(extra.splitlines()) == 1, f"{sid}/{arm}: more than one extra line"
             assert "workflow" in extra, f"{sid}/{arm}: extra line does not name a workflow"
+
+
+def test_mattpocock_variant_parity_all_families():
+    """mattpocock has a flow for every family (skill-mapping ADR, NFR1):
+    all seven variants are the control prompt plus one workflow line."""
+    for sid in SCENARIO_IDS:
+        base = (scenario_dir(sid) / "prompt.md").read_text(encoding="utf-8")
+        path = arm_prompt_path(sid, "mattpocock")
+        assert path == scenario_dir(sid) / "prompt-mattpocock.md", sid
+        variant = path.read_text(encoding="utf-8")
+        assert variant.startswith(base.rstrip("\n")), f"{sid} diverges from control"
+        extra = variant[len(base.rstrip("\n")):].strip()
+        assert len(extra.splitlines()) == 1, f"{sid}: more than one extra line"
+        assert "workflow" in extra, f"{sid}: extra line does not name a workflow"
 
 
 def test_repo_root_points_at_worktree():
