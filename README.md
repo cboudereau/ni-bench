@@ -45,6 +45,12 @@ The run folder `.reports/run-<timestamp>/` receives:
 
 All run outputs are local and git-excluded. Live trials bill real API spend; the cost guard stops the matrix at 50 × n USD and marks the report partial.
 
+Plugin versions are resolved once, at image build; a cached rebuild keeps them. To move every arm to its plugin's current latest before a run:
+
+```bash
+./scripts/build.sh --no-cache   # reinstalls every plugin; the header records what resolved
+```
+
 Each finished trial prints one progress line to stdout:
 
 ```
