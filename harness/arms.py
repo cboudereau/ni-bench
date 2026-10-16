@@ -3,7 +3,9 @@
 The compose `harness` service (simulator + judge) is infrastructure, not a subject arm.
 Artifact globs from the kpi-scoring ADR; verbosity settings from the verbosity-policy ADR.
 Artifact classification from the two-audience-quality ADR (stage 1), rules
-measured from run-20261001-154633.
+measured from run-20261001-154633. The mattpocock rule (``.scratch/<feature>/
+issues/*.md`` is the machine layer, every other authored markdown is human)
+comes from the tracker-seed ADR.
 """
 
 from pathlib import PurePosixPath
@@ -36,6 +38,12 @@ ARMS: tuple[Arm, ...] = (
         artifact_glob="docs/workspace/**/*.md",
         verbosity={"terse": "full"},
     ),
+    Arm(
+        name="mattpocock",
+        dockerfile="arms/Dockerfile.mattpocock",
+        artifact_glob=".scratch/**/*.md",
+        verbosity={},
+    ),
 )
 
 
@@ -62,6 +70,11 @@ def classify_artifact(arm_name: str, rel_path: str) -> str:
         if path.parts[:2] == ("openspec", "specs"):  # written by `openspec init`
             return "excluded"
         if path.parts[:2] == ("openspec", "changes") and path.name == "tasks.md":
+            return "machine"
+        return "human"
+    if arm_name == "mattpocock":
+        # .scratch/<feature>/issues/*.md are the tickets (tracker-seed ADR)
+        if path.parts[:1] == (".scratch",) and path.parts[2:3] == ("issues",):
             return "machine"
         return "human"
     # superpowers and baseline ship no machine layer: authored markdown is human

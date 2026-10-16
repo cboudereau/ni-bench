@@ -101,3 +101,32 @@ def test_openspec_init_specs_excluded():
 )
 def test_authored_markdown_is_human(arm, path):
     assert classify_artifact(arm, path) == "human"
+
+
+# --- mattpocock: .scratch/<feature>/issues/*.md machine (tracker-seed ADR) ---
+
+
+def test_mattpocock_tickets_are_machine():
+    assert (
+        classify_artifact("mattpocock", ".scratch/json-output/issues/01-wire-flag.md")
+        == "machine"
+    )
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        ".scratch/json-output/spec.md",
+        "GLOSSARY.md",
+        "docs/adr/0001-json-output.md",
+        "PLAN.md",
+    ],
+)
+def test_mattpocock_human_layer(path):
+    assert classify_artifact("mattpocock", path) == "human"
+
+
+def test_mattpocock_dot_claude_excluded():
+    # also covered by test_dot_claude_excluded_for_every_arm through ARM_NAMES
+    assert "mattpocock" in ARM_NAMES
+    assert classify_artifact("mattpocock", ".claude/skills/ask-matt/SKILL.md") == "excluded"
