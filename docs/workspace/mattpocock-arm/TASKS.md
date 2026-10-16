@@ -85,9 +85,9 @@ classDiagram
 - `harness/tests/test_isolation.py` — if it enumerates services, add `mattpocock`
 **Verify**: `./scripts/build.sh && ./scripts/check-isolation.sh`
 **Acceptance criteria**:
-- [ ] `docker compose run --rm --no-deps -T mattpocock claude plugin list` prints exactly one plugin, `mattpocock-skills@mattpocock`, with a `Version:` line
-- [ ] `docker compose run --rm --no-deps -T mattpocock cat /home/node/.claude/CLAUDE.md` prints the Agent skills block
-- [ ] `./scripts/check-isolation.sh` exits 0
+- [x] `docker compose run --rm --no-deps -T mattpocock claude plugin list` prints exactly one plugin, `mattpocock-skills@mattpocock`, with a `Version:` line
+- [x] `docker compose run --rm --no-deps -T mattpocock cat /home/node/.claude/CLAUDE.md` prints the Agent skills block
+- [x] `./scripts/check-isolation.sh` exits 0
 **Depends on**: (none)
 **Time-box**: ~45 min
 
@@ -104,8 +104,8 @@ classDiagram
 - `test_mattpocock_dot_claude_excluded` — covered by the parametrised `test_dot_claude_excluded_for_every_arm` through `ARM_NAMES`
 **Verify**: `uv run pytest harness/tests/test_arms.py harness/tests/test_runner.py -q`
 **Acceptance criteria**:
-- [ ] `len(ARMS) == 5` and `ARMS[4].name == "mattpocock"`
-- [ ] the three classification tests pass; every existing test in `test_arms.py` and `test_runner.py` still passes
+- [x] `len(ARMS) == 5` and `ARMS[4].name == "mattpocock"`
+- [x] the three classification tests pass; every existing test in `test_arms.py` and `test_runner.py` still passes
 **Depends on**: (none)
 **Time-box**: ~30 min
 
@@ -121,8 +121,8 @@ classDiagram
 - new `test_mattpocock_variant_parity_all_families` — for all 7 scenarios: prefix equals control, exactly one extra line, contains `workflow`
 **Verify**: `uv run pytest harness/tests/test_scenarios.py -q -k "prompt or variant"`
 **Acceptance criteria**:
-- [ ] 7 files `scenarios/<id>/prompt-mattpocock.md` exist
-- [ ] the parity tests pass for all 7
+- [x] 7 files `scenarios/<id>/prompt-mattpocock.md` exist
+- [x] the parity tests pass for all 7
 **Depends on**: (none)
 **Time-box**: ~20 min
 
@@ -140,8 +140,8 @@ classDiagram
 - keep `NFR4_PATTERN` in the test in sync with `check-blinding.sh`
 **Verify**: `uv run pytest harness/tests/test_judge.py -q`
 **Acceptance criteria**:
-- [ ] all adversarial samples blind to zero matches of the updated NFR4 pattern
-- [ ] survivor text unchanged
+- [x] all adversarial samples blind to zero matches of the updated NFR4 pattern
+- [x] survivor text unchanged
 **Depends on**: (none)
 **Time-box**: ~30 min
 
@@ -157,8 +157,8 @@ classDiagram
 - assert the verbosity line names the arm as default
 **Verify**: `uv run pytest harness/tests/test_report.py -q && bash -n scripts/plugin-versions.sh`
 **Acceptance criteria**:
-- [ ] a rendered header from a fixture results dir lists four plugin versions
-- [ ] `test_report.py` green
+- [x] a rendered header from a fixture results dir lists four plugin versions
+- [x] `test_report.py` green
 **Depends on**: task 2
 **Time-box**: ~30 min
 
