@@ -45,6 +45,18 @@ you want? Once you've reviewed it, choose…") is not detected. The trial still
 completes and grades as-is, which is the designed fallback; the limitation is
 disclosed here rather than reopening the frozen heuristic.
 
+Second fix (2026-10-16, fifth arm, reopened on new evidence): the mattpocock arm's
+grilling round numbers every question under the "❓" marker, answers each with a
+"➡️" recommendation, and closes with a sentence ("Once you've answered, I'll
+check…"). No line in the last three paragraphs ends with "?", so run-20261016-135819
+scored user_turns=0, no artifact, a harness-caused fail; run-20261016-135318 passed
+only because its last question happened to sit inside the window. Rule added in
+`needs_user_reply`: a line headed by "❓" anywhere in the message counts as awaiting
+the user. Replayed over all 15 first turns of the three fifth-arm smoke runs: the
+only verdict that changes is 135819/mattpocock (False → True); every other arm and
+run keeps its verdict. Two unit tests cover the round-with-closing-line case and a
+"❓" inside prose (no reply). Frozen again.
+
 ## Simulator briefs — ONE fix, frozen
 
 Run 2's single simulator exchange (superpowers): reply "Plan approved. your call,

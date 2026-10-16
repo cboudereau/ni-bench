@@ -53,6 +53,30 @@ class TestNeedsUserReply:
             "I recommend native. There are only two small tasks in one file."
         )
 
+    def test_marked_question_round_with_closing_line_needs_reply(self):
+        # fifth-arm smoke (run-20261016-135819): a grilling round ends with the
+        # recommended answer and a closing sentence, so no line in the last
+        # three paragraphs ends with "?"; the explicit question marker still
+        # says the subject is waiting (CALIBRATION, second fix).
+        assert needs_user_reply(
+            "I've read the code. Here is the first round.\n\n"
+            "\u2753 **Q1** - **Document shape**: one array, or NDJSON?\n\n"
+            "\u27a1\ufe0f Yes, a single array.\n\n"
+            "---\n\n"
+            "\u2753 **Q2** - **Errors**: keep today's behaviour? Is that right?\n\n"
+            "\u27a1\ufe0f Yes: stderr message, exit 1.\n\n"
+            "---\n\n"
+            "Once you've answered, I'll check whether the answers open further "
+            "questions before writing the plan."
+        )
+
+    def test_marker_in_prose_without_question_needs_no_reply(self):
+        # the marker counts only when it heads a line
+        assert not needs_user_reply(
+            "Plan written to PLAN.md. The \u2753 icon marks open items in the doc; "
+            "none remain."
+        )
+
     def test_self_answered_open_question_needs_no_reply(self):
         # smoke-run true continue: the open question is answered in the same
         # breath ("The plan says no"), so the trial proceeds to grading.

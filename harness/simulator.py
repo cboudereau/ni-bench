@@ -38,6 +38,9 @@ _APPROVAL = re.compile(
     re.IGNORECASE,
 )
 
+# Explicit question marker heading a line (grilling rounds: "\u2753 **Q1** - ...").
+_QUESTION_MARKER = re.compile(r"^\s*\u2753", re.MULTILINE)
+
 
 def needs_user_reply(final_message: str) -> bool:
     """Heuristic: does the subject's final message await the user?
@@ -50,6 +53,12 @@ def needs_user_reply(final_message: str) -> bool:
     "Open question: X. The plan says no.") does not end a line with "?" and
     does not count. Single function on purpose - calibrated on the task 7
     smoke run and frozen.
+
+    Second fix (CALIBRATION, fifth-arm smoke run-20261016-135819): a line
+    headed by the explicit question marker "\u2753" anywhere in the message
+    also counts. The grilling format numbers each question under that marker,
+    answers it with a recommendation, and closes with a sentence, so the
+    3-paragraph window sees no trailing "?" although the subject is waiting.
     """
     text = (final_message or "").strip()
     if not text:
@@ -57,6 +66,8 @@ def needs_user_reply(final_message: str) -> bool:
     paragraphs = [p.strip() for p in re.split(r"\n\s*\n", text) if p.strip()]
     tail_paragraphs = paragraphs[-3:]
     if _APPROVAL.search("\n".join(tail_paragraphs)):
+        return True
+    if _QUESTION_MARKER.search(text):
         return True
     return any(
         line.rstrip().endswith("?")
