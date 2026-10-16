@@ -26,6 +26,8 @@ Option A, subscription token (bills your Claude plan). `claude setup-token` is i
 CLAUDE_CODE_OAUTH_TOKEN=<TOKEN>
 ```
 
+Optional second line, `ANTHROPIC_MODEL=<model id>`, sets the subject model for every arm (for example `claude-mythos-5-1`); unset, the CLI default runs. The judge and simulator pin their own models. REPORT.md records the model actually used, so nothing else changes.
+
 ## 2. How to run the benchmark
 
 One command per run; each run gets a dedicated timestamped folder:
