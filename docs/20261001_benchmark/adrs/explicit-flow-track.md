@@ -35,6 +35,9 @@ Run a follow-up track with explicit flow invocation per arm:
   and OpenSpec's `/opsx:` workflows. openspec has no debug flow and stays
   implicit there; baseline always keeps the plain prompt. Why skills do not
   trigger autonomously headless is a deferred analysis item.
+- Fifth arm (mattpocock, added 2026-10-16): joins the explicit track for all
+  three families; its `prompt-mattpocock` variant names grill-with-docs/to-spec/to-tickets
+  (plan), diagnosing-bugs (debug), and implement (build).
 - Original scope: the plan family only (`plan-easy`, `plan-complex`), where the
   canonical flows matter most. Results land under `.reports/explicit-v1`,
   rendered to a separate report — the frozen main REPORT.md is untouched.

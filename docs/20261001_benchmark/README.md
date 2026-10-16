@@ -1,12 +1,13 @@
 # benchmark
 
-Benchmark comparing Claude Code plugins (baseline, openspec, superpowers, ni) on 7 scenarios in isolated Docker arms, with a blind LLM judge, a simulated user, and deterministic post-checks. Integrated 2026-10-01.
+Benchmark comparing Claude Code plugins (baseline, openspec, superpowers, ni, mattpocock) on 7 scenarios in isolated Docker arms, with a blind LLM judge, a simulated user, and deterministic post-checks. Integrated 2026-10-01.
 
 Deliverables are per-run local artifacts (git-excluded): each run folder under .reports/ holds its trials, REPORT.md, and ANALYSIS.md. Setup and usage: [README.md](../../README.md).
 
 ## Design
 
 - [benchmark design](designs/benchmark.md) — context, FR1–FR9, NFR1–NFR4, failure modes, architecture
+- [mattpocock arm design](designs/mattpocock-arm.md) — fifth arm (added 2026-10-16): skill mapping, headless tracker seed, artifact classification, blinding
 
 ## ADRs (accepted)
 
@@ -18,6 +19,8 @@ Deliverables are per-run local artifacts (git-excluded): each run folder under .
 - [Simulated user for multi-turn interaction](adrs/simulated-user.md)
 - [Explicit-flow follow-up track (per-arm prompt variants)](adrs/explicit-flow-track.md)
 - [Two-audience quality: split KPIs, dual judge scores, resumability](adrs/two-audience-quality.md) — proposed
+- [Fifth arm: mattpocock-skills skill mapping and install source](adrs/mattpocock-skill-mapping.md)
+- [Fifth arm: headless tracker seed in the throwaway HOME](adrs/mattpocock-tracker-seed.md)
 
 ## Audit
 

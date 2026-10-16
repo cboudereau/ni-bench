@@ -24,6 +24,7 @@ Option A. Verified per plugin:
 - **ni**: terse mode, level `full`. Seeded non-interactively: write `full` into `$HOME/.claude/ni/terse` in the throwaway home before launch (plain-text state file read by the SessionStart hook `scripts/terse-activate.sh`; default would be `lite`).
 - **openspec**: no verbosity or terseness option (checked `openspec/config.yaml` levers: `context`, `rules`, `operations.*.guidance`, `schema.yaml` — style control would mean writing custom rules, which is our prompt, not their setting). Runs default. `OPENSPEC_TELEMETRY=0` set.
 - **superpowers**: no verbosity option found in the plugin. Runs default.
+- **mattpocock**: no verbosity or terseness option (checked every SKILL.md frontmatter and plugin.json at commit 49dd158). Runs default. The throwaway HOME carries a tracker-configuration seed (see the [tracker-seed ADR](mattpocock-tracker-seed.md)), an asymmetry the report header discloses.
 - **baseline**: default Claude Code output style.
 
 REPORT.md states each arm's verbosity configuration in the metadata header so readers see the asymmetry is deliberate.

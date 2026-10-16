@@ -175,8 +175,8 @@ classDiagram
 **Tests**: none (documentation); the Phase 6 integration step moves the workspace ADRs to `docs/20261001_benchmark/adrs/`
 **Verify**: `grep -c mattpocock README.md docs/20261001_benchmark/README.md docs/20261001_benchmark/adrs/scenario-matrix.md docs/20261001_benchmark/adrs/verbosity-policy.md docs/20261001_benchmark/adrs/explicit-flow-track.md`
 **Acceptance criteria**:
-- [ ] every file in the verify command reports a count of at least 1
-- [ ] both ADRs carry `status: accepted` after human ratification and live under `docs/20261001_benchmark/adrs/`
+- [x] every file in the verify command reports a count of at least 1
+- [x] both ADRs carry `status: accepted` after human ratification and live under `docs/20261001_benchmark/adrs/`
 **Depends on**: tasks 1–5
 **Time-box**: ~30 min
 

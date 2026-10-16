@@ -1,6 +1,6 @@
 # ni-bench
 
-Benchmark comparing Claude Code plugins (baseline, openspec, superpowers, ni) on identical scenarios in isolated Docker arms, scored by a blind LLM judge plus deterministic post-checks. Design and ADRs: [docs/20261001_benchmark/](docs/20261001_benchmark/README.md).
+Benchmark comparing Claude Code plugins (baseline, openspec, superpowers, ni, mattpocock) on identical scenarios in isolated Docker arms, scored by a blind LLM judge plus deterministic post-checks. Design and ADRs: [docs/20261001_benchmark/](docs/20261001_benchmark/README.md).
 
 ## 1. Setup
 
@@ -31,7 +31,7 @@ CLAUDE_CODE_OAUTH_TOKEN=<TOKEN>
 One command per run; each run gets a dedicated timestamped folder:
 
 ```bash
-./scripts/bench.sh            # full matrix: 4 arms x 7 scenarios, n=3 — cost guard 50 x n USD
+./scripts/bench.sh            # full matrix: 5 arms x 7 scenarios, n=3 — cost guard 50 x n USD
 BENCH_N=1 ./scripts/bench.sh  # cheaper full matrix (n=1)
 ./scripts/bench.sh smoke      # plan-easy only, n=1 — a few USD
 ```
