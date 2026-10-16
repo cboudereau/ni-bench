@@ -50,9 +50,15 @@ Install source
 
 ## Decision
 
-- Plan family: **A**. The appended line: `Use the grill-with-docs, to-spec, and to-tickets skill workflow for this plan.` One line, names only the arm's tools, keeps the word `workflow` for the parity test.
-- Debug family: **E**. Line: `Use the diagnosing-bugs skill workflow for this investigation.`
-- Build family: **G**. Line: `Use the implement skill workflow to drive this implementation.`
+- Plan family: **A**. Entry `/mattpocock-skills:grill-with-docs`; appended line: `Then use the to-spec and to-tickets skill workflow to publish the plan.`
+- Debug family: **E**. Entry `/mattpocock-skills:diagnosing-bugs`; appended line: `Use the diagnosing-bugs skill workflow for this investigation.`
+- Build family: **G**. Entry `/mattpocock-skills:implement`; appended line: `Drive the implementation with the tdd and code-review skill workflow.`
+
+### Invocation: slash command, not prose (amended 2026-10-16 after smoke run-20261016-134506)
+
+The first smoke trial named the skills in prose only. The subject answered "`grill-with-docs`, `to-spec` and `to-tickets` aren't installed here" and improvised the flow by hand. A probe of the arm container listed what the Skill tool exposes: only the model-invoked skills (`diagnosing-bugs`, `tdd`, `grilling`, `domain-modeling`, `codebase-design`, `code-review`, `pr`, `prototype`, `research`, `wizard`, `writing-for-agents`). Every skill with `disable-model-invocation: true` (`grill-with-docs`, `to-spec`, `to-tickets`, `implement`, `implement-spec`, `wayfinder`, `triage`, `ask-matt`, `grill-me`, `handoff`, `retro`, `setup-matt-pocock-skills`) is reachable only as a typed slash command, by the plugin's own design ("User-invoked skills are reachable only when you type them"). A second probe with `/mattpocock-skills:grill-with-docs` as the first line of the `-p` prompt and the task as its arguments loaded `grilling` and `domain-modeling` and opened a 7-question round.
+
+Each `prompt-mattpocock.md` therefore leads with the slash command of the family's entry skill, then the control prompt byte for byte, then the one appended line. The chain after the entry (`to-spec`, `to-tickets`, `tdd`, `code-review`) stays in prose: the model cannot type a slash command mid-session, and the simulated user sends free text. The parity test for this arm checks the three-part shape (`test_mattpocock_variant_parity_all_families`); the other plugin arms keep the two-part shape because their named skills are model-invoked.
 - Install: **J**, the author marketplace, for symmetry with the two other plugin arms and so the measured version is the author's current release. `scripts/plugin-versions.sh` records whatever resolved.
 
 Structural bias to disclose in the bias table (FR6): plan-easy criterion 3 (traceability to `cli.py`, `build_parser`, `stats.summarize`) rewards what `to-spec` forbids ("Do NOT include specific file paths or code snippets"). Expected direction: against mattpocock on plan-easy traceability; neutral elsewhere. The home-grown plan/debug families stay ni-shaped, the ported ones superpowers-shaped, as already recorded.

@@ -1,3 +1,5 @@
+/mattpocock-skills:implement
+
 # Task
 
 Add a `parse_duration(text)` function to `timefmt.py` in this project — the
@@ -19,4 +21,4 @@ Acceptance tests (as agreed with the team):
 Work test-first: add automated tests for the behaviour to the suite alongside
 the implementation. The whole suite must pass when you are done.
 
-Use the implement skill workflow to drive this implementation.
+Drive the implementation with the tdd and code-review skill workflow.

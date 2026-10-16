@@ -38,6 +38,9 @@ Run a follow-up track with explicit flow invocation per arm:
 - Fifth arm (mattpocock, added 2026-10-16): joins the explicit track for all
   three families; its `prompt-mattpocock` variant names grill-with-docs/to-spec/to-tickets
   (plan), diagnosing-bugs (debug), and implement (build).
+  Its variants lead with the entry skill as a slash command (`/mattpocock-skills:<skill>`)
+  because those skills are user-invoked and absent from the Skill tool; prose naming
+  alone left them unreached in smoke run-20261016-134506 (mattpocock-skill-mapping ADR).
 - Original scope: the plan family only (`plan-easy`, `plan-complex`), where the
   canonical flows matter most. Results land under `.reports/explicit-v1`,
   rendered to a separate report — the frozen main REPORT.md is untouched.

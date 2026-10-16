@@ -1,3 +1,5 @@
+/mattpocock-skills:implement
+
 # Task
 
 Build the task-list module of this project end to end: implement the
@@ -20,4 +22,4 @@ Specification:
 
 The whole test suite must pass when you are done.
 
-Use the implement skill workflow to drive this implementation.
+Drive the implementation with the tdd and code-review skill workflow.

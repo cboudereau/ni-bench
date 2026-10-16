@@ -1,3 +1,5 @@
+/mattpocock-skills:grill-with-docs
+
 # Task
 
 The `wordstats` project in this workspace is a small command-line tool that prints
@@ -10,4 +12,4 @@ unchanged.
 Produce a written plan document (markdown file in the workspace) that a developer
 could implement from. Do not implement the change — this task is planning only.
 
-Use the grill-with-docs, to-spec, and to-tickets skill workflow for this plan.
+Then use the to-spec and to-tickets skill workflow to publish the plan.

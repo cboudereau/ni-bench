@@ -14,13 +14,15 @@ The plugin has no single planning skill. Its planning route is a chain: `grill-w
 A compose service `mattpocock` built from `arms/Dockerfile.mattpocock`, installing `mattpocock-skills` at image build time into the arm template HOME (same pattern as the superpowers and ni arms). It is registered in `harness/arms.py::ARMS` and reaches the smoke and matrix modes without further flags.
 
 ### <a id="fr2"></a>FR2 — Skill mapping per scenario family
-One `scenarios/<id>/prompt-mattpocock.md` per scenario (7 files), each the control prompt plus exactly one appended line naming the arm's mapped workflow. The mapping is fixed by [ADR: skill mapping](../adrs/mattpocock-skill-mapping.md):
+One `scenarios/<id>/prompt-mattpocock.md` per scenario (7 files), each one slash-command line (the family's entry skill), then the control prompt, then exactly one appended line naming the rest of the arm's mapped workflow. The mapping is fixed by [ADR: skill mapping](../adrs/mattpocock-skill-mapping.md):
 
-| Family | Scenarios | Mapped skills | Appended line |
-|---|---|---|---|
-| plan | plan-easy, plan-complex | `grill-with-docs` → `to-spec` → `to-tickets` | `Use the grill-with-docs, to-spec, and to-tickets skill workflow for this plan.` |
-| debug | debug-easy, debug-complex, ported-debug | `diagnosing-bugs` | `Use the diagnosing-bugs skill workflow for this investigation.` |
-| build | build-small, ported-build | `implement` (drives `tdd` and `code-review`) | `Use the implement skill workflow to drive this implementation.` |
+| Family | Scenarios | Mapped skills | Slash entry (first line) | Appended line |
+|---|---|---|---|---|
+| plan | plan-easy, plan-complex | `grill-with-docs` → `to-spec` → `to-tickets` | `/mattpocock-skills:grill-with-docs` | `Then use the to-spec and to-tickets skill workflow to publish the plan.` |
+| debug | debug-easy, debug-complex, ported-debug | `diagnosing-bugs` | `/mattpocock-skills:diagnosing-bugs` | `Use the diagnosing-bugs skill workflow for this investigation.` |
+| build | build-small, ported-build | `implement` (drives `tdd` and `code-review`) | `/mattpocock-skills:implement` | `Drive the implementation with the tdd and code-review skill workflow.` |
+
+The entry skill is a slash command because the plugin's flagship skills are user-invoked (`disable-model-invocation: true`) and never appear in the Skill tool; see the Invocation section of the skill-mapping ADR.
 
 ### <a id="fr3"></a>FR3 — Headless tracker configuration
 `to-spec`, `to-tickets`, and `implement` require an issue tracker configured by the interactive `/setup-matt-pocock-skills`. The arm seeds the equivalent configuration non-interactively, with the local-markdown tracker, per [ADR: tracker seed](../adrs/mattpocock-tracker-seed.md). The seed lives in the throwaway HOME, never in the fixture workspace, so the fixture diff stays authored content only.
@@ -42,7 +44,7 @@ The two workspace ADRs are promoted to `docs/20261001_benchmark/adrs/` at integr
 ## Non-Functional Requirements
 
 ### <a id="nfr1"></a>NFR1 — Prompt parity with the explicit track
-- **Scenario**: every prompt-mattpocock variant compared with its control prompt → identical prefix, one extra line containing the word `workflow`
+- **Scenario**: every prompt-mattpocock variant compared with its control prompt → one leading slash line, then the control prompt byte for byte, then one extra line containing the word `workflow`
 - **Measure**: pass/fail
 - **Verify**: `uv run pytest harness/tests/test_scenarios.py -q`
 

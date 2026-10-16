@@ -1,3 +1,5 @@
+/mattpocock-skills:grill-with-docs
+
 # Task
 
 Plan a Python client library for the internal "Orion" pricing API. Requirements:
@@ -15,4 +17,4 @@ could implement from: architecture, the persistence choice for the cache, the
 rate-limit and retry handling, the public-contract versioning strategy, a test
 strategy, and an ordered task breakdown. Do not implement — planning only.
 
-Use the grill-with-docs, to-spec, and to-tickets skill workflow for this plan.
+Then use the to-spec and to-tickets skill workflow to publish the plan.

@@ -124,7 +124,9 @@ def test_plan_fixture_has_no_markdown():
 
 # --- explicit-flow prompt variants (explicit-flow-track ADR) ---------------
 
-PLUGIN_ARMS = ("ni", "openspec", "superpowers", "mattpocock")
+# mattpocock is excluded here: its flagship skills are user-invoked, so its
+# variant leads with a slash command (skill-mapping ADR, Invocation section)
+PLUGIN_ARMS = ("ni", "openspec", "superpowers")
 
 
 def test_arm_prompt_falls_back_to_shared_prompt():
@@ -162,16 +164,30 @@ def test_arm_prompt_prefers_arm_variant_for_plan_family():
             assert "workflow" in extra, f"{sid}/{arm}: extra line does not name a workflow"
 
 
+SLASH_ENTRY = {
+    "plan-easy": "grill-with-docs",
+    "plan-complex": "grill-with-docs",
+    "debug-easy": "diagnosing-bugs",
+    "debug-complex": "diagnosing-bugs",
+    "ported-debug": "diagnosing-bugs",
+    "build-small": "implement",
+    "ported-build": "implement",
+}
+
+
 def test_mattpocock_variant_parity_all_families():
-    """mattpocock has a flow for every family (skill-mapping ADR, NFR1):
-    all seven variants are the control prompt plus one workflow line."""
+    """mattpocock has a flow for every family (skill-mapping ADR, NFR1): every
+    variant is one slash-command line (the arm's user-invoked entry skill),
+    then the control prompt byte for byte, then exactly one workflow line."""
     for sid in SCENARIO_IDS:
-        base = (scenario_dir(sid) / "prompt.md").read_text(encoding="utf-8")
+        base = (scenario_dir(sid) / "prompt.md").read_text(encoding="utf-8").rstrip("\n")
         path = arm_prompt_path(sid, "mattpocock")
         assert path == scenario_dir(sid) / "prompt-mattpocock.md", sid
         variant = path.read_text(encoding="utf-8")
-        assert variant.startswith(base.rstrip("\n")), f"{sid} diverges from control"
-        extra = variant[len(base.rstrip("\n")):].strip()
+        head, _, rest = variant.partition("\n\n")
+        assert head == f"/mattpocock-skills:{SLASH_ENTRY[sid]}", f"{sid}: wrong slash entry"
+        assert rest.startswith(base), f"{sid} diverges from control"
+        extra = rest[len(base):].strip()
         assert len(extra.splitlines()) == 1, f"{sid}: more than one extra line"
         assert "workflow" in extra, f"{sid}: extra line does not name a workflow"
 
