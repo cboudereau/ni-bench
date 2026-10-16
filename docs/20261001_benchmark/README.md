@@ -26,3 +26,4 @@ Deliverables are per-run local artifacts (git-excluded): each run folder under .
 
 - [CALIBRATION.md](CALIBRATION.md) — frozen rubric, question-detection heuristic, brief fixes, infra bugs found during smoke
 - Reported run: `.reports/matrix-v2/` (84 trials, 0 indeterminate, 10.81 USD) — local only, like all run artifacts; discarded pre-fix run kept locally, see the run ANALYSIS.md disclosures
+- Fifth-arm smoke runs (2026-10-16, plan-easy, n=1, local only): `run-20261016-134506` (prose-named skills, mattpocock reported them "not installed", 0.88 USD) and `run-20261016-135318` (slash-command entry, grilling round answered by the simulator in 1 user turn, spec plus 3 tickets under `.scratch/`, 0.92 USD); both 5/5 pass, 0 indeterminate, blinding ALL CLEAN
