@@ -43,6 +43,17 @@ Scores before and after v2.1 are not comparable on those items; the arm that
 was taught slicing the same day is ni (version 2.2.0), disclosed in the
 scenario-matrix bias table. Frozen again.
 
+Verification (`.reports/rejudge-162054`, run-20261018-162054 re-judged under
+v2.1 on identical inputs, 105/105): plan-complex `agent_executability` medians
+old → v2.1: baseline 85 → 62, openspec 86 → 62, superpowers 92 → 70, mattpocock
+76 → 55, ni 90 → 84 (ni's plans in that run were already behaviour slices; the
+others were layer sequences, and the notes say so: "nothing runs end to end
+until Task 6"). Readability moved within drift for every arm. Build scenarios
+dropped for every arm: ni made no commits headless (judged from the transcript),
+superpowers one commit at the end. The debug family rose 5 to 20 points for
+every arm under an unchanged debugging definition: prompt-length drift, treated
+as noise. The old-rubric scores of run-20261018-162054 stay in its folder.
+
 ## `needs_user_reply` heuristic — ONE fix, frozen
 
 Run 1 evidence: the superpowers arm ended with a genuine question
