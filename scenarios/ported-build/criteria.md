@@ -18,6 +18,11 @@ Score:
    silently swallowed.
 4. **Scope discipline** — no CLI, no extra features, no new dependencies; the
    deliverable is the specified module plus tests.
+5. **Slices** — the commit log, when there is one, shows each commit making
+   one `TaskList` behaviour work end to end with its test, the first commit
+   being the thinnest path (add and items); a single commit at the end, or
+   commits by layer, scores low on this item. No commit log: score this item
+   from the transcript's stated order of work.
 
 Deterministic outcome comes from the post-check (visible suite plus hidden
 planted-defect checks); this rubric grades process and spec discipline.

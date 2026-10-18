@@ -23,6 +23,26 @@ bug, see below). Evidence checked:
 
 Verdict: rubric wording kept verbatim from task 5. Frozen.
 
+Rubric v2.1 (2026-10-18, reopened on new evidence): the judge saw final messages
+and markdown artifacts only, so it could not tell a plan or a build made of
+vertical slices from one assembled layer by layer; runs 20261018-070444 and
+20261018-120948 showed ni planning the complex scenario as models, store,
+limiter, client with nothing runnable before task 7, and the scores could not
+see it. Three changes, applied to every arm alike: (1) the judge input gains a
+"Commit log" section, the subject's own commits in the trial workspace after
+the fixture baseline, oldest first with the files per commit (`judge.py`,
+`_load_commit_log`; blinded like the rest); (2) the `agent_executability`
+definition asks whether tasks are behaviours verifiable end to end through the
+public surface and, for builds, whether each commit makes one behaviour work,
+the thinnest path first; (3) criteria: plan-complex item 5 and a new item 5 on
+build-small and ported-build score slices, with a layer-by-layer sequence or a
+single end commit scoring low. Judge self-variance measured on the old rubric
+by re-judging run-20261018-070444 (`.reports/rejudge-070444`): mean absolute
+drift 2.2 human_readability, 3.1 agent_executability, 1.4 verbosity, max 17.
+Scores before and after v2.1 are not comparable on those items; the arm that
+was taught slicing the same day is ni (version 2.2.0), disclosed in the
+scenario-matrix bias table. Frozen again.
+
 ## `needs_user_reply` heuristic — ONE fix, frozen
 
 Run 1 evidence: the superpowers arm ended with a genuine question

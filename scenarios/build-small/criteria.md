@@ -12,6 +12,10 @@ Score:
    `format_duration` behaviour and tests untouched and green.
 4. **Code quality** — no over-engineering (no new dependencies, no parser
    framework for a three-unit grammar).
+5. **Slices** — the commit log, when there is one, shows each commit making
+   one behaviour of `parse_duration` work end to end with its test; a single
+   commit at the end, or commits by layer, scores low on this item. No commit
+   log: score this item from the transcript's stated order of work.
 
 Deterministic outcome comes from the post-check (visible suite plus hidden
 edge-case tests); this rubric grades process and spec discipline.

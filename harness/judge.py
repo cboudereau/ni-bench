@@ -43,7 +43,11 @@ artifacts serve two audiences; score each on its own merits:
 - agent_executability (0-100): the machine-facing layer.
   For planning/build tasks: could a fresh agent with no session memory
   execute or resume from the produced artifacts alone - self-contained
-  tasks, verify commands, progress tracking?
+  tasks, verify commands, progress tracking? Are the tasks behaviours,
+  each verifiable end to end through the public surface, rather than
+  layers assembled at the end? For build tasks the commit log shows the
+  path taken: does each commit make one behaviour work, starting with
+  the thinnest end-to-end path?
   For debugging tasks: is there a verifiable process trace - reproduction
   shown, root cause established before the fix, tests failing then passing?
 - verbosity_score (0-100): signal density of the produced text - 100 means
@@ -83,9 +87,18 @@ def combine_verdict(
 
 
 def assemble_judge_input(
-    prompt: str, criteria: str, transcript: str, artifacts: dict[str, str]
+    prompt: str,
+    criteria: str,
+    transcript: str,
+    artifacts: dict[str, str],
+    commit_log: str = "",
 ) -> str:
-    """Blinded judge input: rubric, scenario prompt, criteria, transcript, artifacts."""
+    """Blinded judge input: rubric, prompt, criteria, transcript, commit log, artifacts.
+
+    The commit log is the arm's own commits in the trial workspace, oldest
+    first, with the files each one touched: the path the work took, which
+    the final message and the artifacts never show (rubric v2.1).
+    """
     parts = [
         RUBRIC,
         "## Scenario prompt (what the user asked)",
@@ -94,6 +107,8 @@ def assemble_judge_input(
         criteria,
         "## Session transcript",
         transcript or "(no transcript captured)",
+        "## Commit log (the subject's own commits, oldest first, files per commit)",
+        commit_log or "(no commit made)",
     ]
     for name, text in artifacts.items():
         parts += [f"## Artifact: {name}", text]
@@ -154,6 +169,28 @@ def _load_transcript(trial_dir: Path) -> str:
         if i < len(replies):
             lines.append(f"USER:\n{replies[i]}")
     return "\n\n".join(lines)
+
+
+def _load_commit_log(trial_dir: Path) -> str:
+    """The subject's commits after the fixture baseline, oldest first, with stats.
+
+    Empty when the workspace is missing, is not a repository, or holds only
+    the runner's "fixture baseline" commit. Read-only; never touches the
+    index, so a saved trial dir is left exactly as the runner wrote it.
+    """
+    workspace = trial_dir / "workspace"
+    if not (workspace / ".git").exists():
+        return ""
+    # %x1e opens each record, so a commit and its stat block split cleanly
+    proc = subprocess.run(
+        ["git", "-C", str(workspace), "log", "--reverse", "--stat", "--format=%x1e%h %s"],
+        capture_output=True, text=True, check=False,
+    )
+    if proc.returncode != 0:
+        return ""
+    records = [r.strip() for r in proc.stdout.split("\x1e") if r.strip()]
+    kept = [r for r in records if not r.split("\n", 1)[0].endswith("fixture baseline")]
+    return "\n\n".join(kept)
 
 
 def _load_artifacts(trial_dir: Path, plan_files: list[str]) -> dict[str, str]:
@@ -233,6 +270,7 @@ def judge_trial(
         (sdir / "criteria.md").read_text(encoding="utf-8"),
         _load_transcript(trial_dir),
         _load_artifacts(trial_dir, artifact_files),
+        commit_log=_load_commit_log(trial_dir),
     )
 
     judge_dir = trial_dir / "judge"

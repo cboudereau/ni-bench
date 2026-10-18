@@ -124,6 +124,40 @@ def test_explicit_flow_prompt_variants_blind_clean():
             assert not NFR4_PATTERN.search(quoted), f"{sid}/{arm} leaks via judge input"
 
 
+def test_judge_input_carries_the_commit_log_blinded():
+    # rubric v2.1: the subject's commit log reaches the judge so the path
+    # taken (slices or layers) is visible, and it is blinded like the rest
+    text = assemble_judge_input(
+        "prompt", "criteria", "ASSISTANT:\ndone", {},
+        commit_log="a1b2c3d feat: superpowers plan\n docs/plans/x.md | 1 +",
+    )
+    assert "## Commit log" in text
+    assert "a1b2c3d feat:" in text
+    assert not NFR4_PATTERN.search(text)
+    assert "(no commit made)" in assemble_judge_input("p", "c", "t", {})
+
+
+def test_load_commit_log_skips_the_fixture_baseline(tmp_path):
+    import subprocess
+
+    from harness.judge import _load_commit_log
+
+    ws = tmp_path / "workspace"
+    ws.mkdir()
+    env = ["git", "-C", str(ws), "-c", "user.email=t@t", "-c", "user.name=t"]
+    subprocess.run([*env, "init", "-q"], check=True)
+    subprocess.run([*env, "commit", "-q", "--allow-empty", "-m", "fixture baseline"], check=True)
+    assert _load_commit_log(tmp_path) == ""
+    (ws / "a.py").write_text("x = 1\n")
+    subprocess.run([*env, "add", "-A"], check=True)
+    subprocess.run([*env, "commit", "-q", "-m", "feat: add returns an id"], check=True)
+    log = _load_commit_log(tmp_path)
+    assert "feat: add returns an id" in log
+    assert "a.py" in log
+    assert "fixture baseline" not in log
+    assert _load_commit_log(tmp_path / "missing") == ""
+
+
 # --- verdict combination -------------------------------------------------
 
 
