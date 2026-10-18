@@ -54,6 +54,14 @@ Plugin versions are resolved once, at image build; a cached rebuild keeps them. 
 ./scripts/build.sh --no-cache   # reinstalls every plugin; the header records what resolved
 ```
 
+To benchmark an unpublished ni checkout, name it and run as usual; unset, the ni arm installs the latest release:
+
+```bash
+NI_LOCAL_SRC=/path/to/natural-intelligence ./scripts/bench.sh smoke   # or a line in .env
+```
+
+The checkout is staged as a local marketplace (`arms/ni-local/`, git-ignored) and the ni arm is rebuilt on every run from its current state. The header shows the version as `<version>+local.<sha>`, so a checkout is never mistaken for a release.
+
 Each finished trial prints one progress line to stdout:
 
 ```

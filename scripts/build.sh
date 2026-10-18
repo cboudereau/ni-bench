@@ -11,5 +11,10 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+# ni source: NI_LOCAL_SRC (environment, else .env) names an unpublished
+# checkout to stage and build from; unset, the arm installs the latest release.
+# shellcheck source=scripts/ni-source.sh
+. ./scripts/ni-source.sh
+
 docker build -f arms/Dockerfile.base -t ni-bench-base arms
 docker compose build "$@"

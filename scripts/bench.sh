@@ -18,6 +18,12 @@ export PATH="$HOME/.local/bin:$PATH"
 # (FROM ni-bench-base), so a pruned docker store would fail every trial.
 docker image inspect ni-bench-base >/dev/null 2>&1 || ./scripts/build.sh
 
+# A local ni checkout is re-staged and the ni arm rebuilt on every run, so the
+# image always holds the checkout's current state (cached when unchanged).
+# shellcheck source=scripts/ni-source.sh
+. ./scripts/ni-source.sh
+[ "$NI_SOURCE" = "local" ] && docker compose build ni
+
 # Plugin versions are whatever the built images actually hold (images install
 # the latest marketplace release at build time), so read them live and record
 # them in matrix.json; the renderer stays a pure function of the results dir

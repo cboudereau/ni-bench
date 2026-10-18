@@ -29,6 +29,9 @@ services:
     build:
       context: arms
       dockerfile: Dockerfile.ni
+      args:
+        # local: an unpublished checkout staged by scripts/stage-ni-local.sh
+        NI_SOURCE: ${NI_SOURCE:-marketplace}
 
   mattpocock:
     <<: *common
