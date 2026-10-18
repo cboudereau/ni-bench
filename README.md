@@ -11,7 +11,7 @@ Prerequisites:
 - [uv](https://docs.astral.sh/uv/) on PATH (`export PATH="$HOME/.local/bin:$PATH"`)
 - A trusted machine: arm containers run `--dangerously-skip-permissions`; never run the matrix on a host with secrets mounted into the repo
 
-Credential — one variable in `.env` at the repo root (gitignored, never baked into images).
+`.env` at the repo root (gitignored, never baked into images) holds two required variables: the credential and the subject model.
 
 Option A, subscription token (bills your Claude plan). `claude setup-token` is interactive: never wrap it in command substitution or pipes, its prompts get captured and the command hangs.
 
@@ -24,9 +24,10 @@ Option A, subscription token (bills your Claude plan). `claude setup-token` is i
 4. Write the `.env` file:
 ```bash
 CLAUDE_CODE_OAUTH_TOKEN=<TOKEN>
+ANTHROPIC_MODEL=claude-sonnet-5-5
 ```
 
-Optional second line, `ANTHROPIC_MODEL=<model id>`, sets the subject model for every arm (for example `claude-haiku-5-5` for a cheap pass); unset, the CLI default runs. The judge and simulator pin their own models. REPORT.md records the model actually used, so nothing else changes.
+`ANTHROPIC_MODEL` is the subject model for every arm and is required: `bench.sh` refuses to start without it, so a run never silently inherits the CLI default. Swap it for a cheaper (`claude-haiku-5-5`) or stronger model per run. The judge and simulator pin their own models. REPORT.md records the model actually billed.
 
 ## 2. How to run the benchmark
 
