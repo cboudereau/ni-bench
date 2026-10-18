@@ -28,7 +28,8 @@ echo "plugin versions: $BENCH_PLUGIN_OVERRIDES"
 # Models: the subject is whatever the arm CLI resolves (ANTHROPIC_MODEL from
 # .env, else the CLI default; REPORT.md records the one actually billed);
 # judge and simulator are pinned in the harness.
-SUBJECT_MODEL="$(grep -E '^ANTHROPIC_MODEL=' .env 2>/dev/null | tail -1 | cut -d= -f2-)"
+# grep exits 1 on no match; under pipefail that would end the script here
+SUBJECT_MODEL="$( { grep -E '^ANTHROPIC_MODEL=' .env 2>/dev/null || true; } | tail -1 | cut -d= -f2-)"
 JUDGE_SIM="$(uv run python -c 'from harness.judge import JUDGE_MODEL; from harness.simulator import SIMULATOR_MODEL; print(f"judge={JUDGE_MODEL} simulator={SIMULATOR_MODEL}")')"
 echo "models: subject=${SUBJECT_MODEL:-cli-default} $JUDGE_SIM"
 
