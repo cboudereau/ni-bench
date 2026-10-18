@@ -98,6 +98,10 @@ def test_build_simulator_prompt_embeds_brief_rules_and_message():
     # plan and appended "Start with Task 1.", turning a planning-only
     # scenario into a 22-minute subagent build that hit the trial timeout
     assert "never tell the assistant to start, implement" in prompt.lower()
+    # run-20261018-070444 plan-complex/superpowers trial 3: the execution gate
+    # ("subagent-driven or native?") got the fallback "your call" and the arm
+    # built the whole library; an execution question is not a brief gap
+    assert "implementation is outside this session" in prompt.lower()
 
 
 def test_simulator_command_uses_harness_service_and_haiku(tmp_path):

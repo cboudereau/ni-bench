@@ -92,6 +92,23 @@ TTL and per-credential facts from the brief, send the fallback for the uncovered
 questions and for the execution approach, and none instructs the assistant to
 start or implement anything ("Task is complete" in one). Frozen again.
 
+Third fix (2026-10-18, same run, trial 3 of the same cell): the simulator gave
+no "Start with" instruction but answered the superpowers execution gate
+("subagent-driven or native?") with the fallback "your call, decide and
+continue" and omitted "task is complete"; superpowers then built the whole
+library natively (36 files) and was killed at 1200 s. Trial 2 of the cell got
+"Task is complete" and the arm stopped: that phrase is what closes the gate.
+Rule added to `STANDING_RULES`: when the brief says the work happens later, an
+execution question is not a brief gap; answer that implementation is outside
+this session and the task ends with the approved plan; never pick an approach.
+Replay of the trial-3 gate, Haiku 4.5 with the new rule: 3/3 say "Task is
+complete", 2/3 still add "execution approach: your call". Same prompt on
+`claude-haiku-5-5`: 3/3 decline execution explicitly ("no execution approach is
+needed here", "Don't start any tasks") and keep the fallback for the brief gaps;
+0.016 USD per reply after the first (0.13 USD, cache creation). Simulator model
+switched to `claude-haiku-5-5`; the 2.1.285 CLI logs `unrecognized_model` on
+stderr and serves it. Frozen again.
+
 ## ni arm terse proof (deferred from task 2)
 
 From the run-1 ni session log

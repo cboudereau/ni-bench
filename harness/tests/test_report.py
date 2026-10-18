@@ -143,7 +143,7 @@ def test_header_metadata_and_layout():
     for needle in (
         "claude-opus-4-6",  # subject model, read from the saved CLI JSON
         "claude-sonnet-5-5",  # judge
-        "claude-haiku-4-5-20251001",  # simulator
+        "claude-haiku-5-5",  # simulator
         "2.1.285",
         "superpowers latest (n/a)",
         "ni latest (n/a)",

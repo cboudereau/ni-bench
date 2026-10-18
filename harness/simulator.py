@@ -14,7 +14,11 @@ from pathlib import Path
 from harness.executor import compose_run_command
 from harness.scenarios import scenario_dir
 
-SIMULATOR_MODEL = "claude-haiku-4-5-20251001"
+# Haiku 5.5 since 2026-10-18 (CALIBRATION, simulator third fix): on the
+# replayed superpowers execution gate it declined execution 3/3 where
+# Haiku 4.5 managed 3/5 with the same rules. The 2.1.285 CLI logs
+# unrecognized_model on stderr for it and serves it anyway.
+SIMULATOR_MODEL = "claude-haiku-5-5"
 SIMULATOR_HOME_MOUNT = "/home/node"
 FALLBACK_REPLY = "your call, decide and continue"
 
@@ -28,6 +32,10 @@ Standing rules (simulated-user ADR):
 - Never tell the assistant to start, implement, execute, or proceed with any \
 task or step unless the brief explicitly says so. When the brief says the work \
 happens later, approve and stop there.
+- When the brief says the work happens later, a question about execution (how, \
+when, or whether to implement; which approach; subagents or native) is not a \
+gap in the brief: answer that implementation is outside this session and the \
+task ends with the approved plan. Never pick an execution approach.
 - Reply with the user's next message only - no commentary, no meta-discussion."""
 
 # Explicit approval requests and plan-mode gate phrasings; the trailing-question
