@@ -265,6 +265,32 @@ def test_matrix_json_records_n_and_date(tmp_path):
     assert re.fullmatch(r"\d{4}-\d{2}-\d{2}", marker["date"])
 
 
+def test_fixture_diff_survives_an_arm_commit(tmp_path):
+    # run-20261017-133523: arms whose flow commits (mattpocock implement,
+    # superpowers builds) moved HEAD past the fixture baseline, so the index
+    # vs HEAD diff came back empty and the judge saw no artifact. The diff
+    # must be taken against the fixture-baseline commit, whatever HEAD is.
+    trial_dir = tmp_path / "plan-easy" / "baseline" / "t1"
+
+    def write_and_commit(_cmd):
+        ws = trial_dir / "workspace"
+        (ws / "PLAN.md").write_text("a plan with five words\n")
+        for args in (["add", "-A"], ["commit", "-q", "-m", "arm commit"]):
+            subprocess.run(
+                ["git", "-c", "user.email=arm@test", "-c", "user.name=arm", *args],
+                cwd=ws, check=True, capture_output=True,
+            )
+
+    ex = Scripted(subject=[cli_json(COMPLETION)], on_subject=write_and_commit)
+    result = run_trial(BASELINE, PLAN_EASY, "t1", results_root=tmp_path, executor=ex)
+
+    diff = (trial_dir / "fixture.diff").read_text()
+    assert "diff --git a/PLAN.md b/PLAN.md" in diff
+    assert result.artifact_metrics["files_changed"] == 1
+    assert result.artifact_metrics["plan_files"] == ["PLAN.md"]
+    assert result.artifact_metrics["plan_words"] == 5
+
+
 def test_run_trial_sends_arm_prompt_variant(tmp_path):
     # explicit-flow-track ADR: an arm with a prompt variant gets it verbatim;
     # the baseline control keeps the shared prompt.
