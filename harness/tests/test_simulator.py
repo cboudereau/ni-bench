@@ -94,6 +94,10 @@ def test_build_simulator_prompt_embeds_brief_rules_and_message():
     assert "FINAL-MESSAGE" in prompt
     assert FALLBACK_REPLY in prompt, "standing rules must carry the brief-silent reply"
     assert "never introduce new requirements" in prompt.lower()
+    # run-20261018-070444 plan-complex/superpowers: the simulator approved the
+    # plan and appended "Start with Task 1.", turning a planning-only
+    # scenario into a 22-minute subagent build that hit the trial timeout
+    assert "never tell the assistant to start, implement" in prompt.lower()
 
 
 def test_simulator_command_uses_harness_service_and_haiku(tmp_path):

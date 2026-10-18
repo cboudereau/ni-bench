@@ -25,6 +25,9 @@ Standing rules (simulated-user ADR):
 - When the brief does not cover the question, reply exactly: "{FALLBACK_REPLY}"
 - Approve a plan or proposal gate when the plan addresses the brief's goal.
 - Never introduce new requirements beyond the brief.
+- Never tell the assistant to start, implement, execute, or proceed with any \
+task or step unless the brief explicitly says so. When the brief says the work \
+happens later, approve and stop there.
 - Reply with the user's next message only - no commentary, no meta-discussion."""
 
 # Explicit approval requests and plan-mode gate phrasings; the trailing-question

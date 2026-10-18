@@ -76,6 +76,22 @@ that approval closes the task ("never ask for implementation now; it happens
 later, outside this session"). Run 3 is archived under `.reports/calibration-run3/`.
 Frozen.
 
+Second fix (2026-10-18, reopened on new evidence): run-20261018-070444
+plan-complex/superpowers. The subject ended turn 1 with its execution-approach
+gate; the simulator approved per the brief, answered the uncovered questions with
+the fallback, then appended "Start with Task 1." Turn 2 became a subagent-driven
+implementation (16 Agent launches, a `.worktrees/` checkout) and was killed at the
+1200 s trial budget: indeterminate, and the killed turn's spend is not in the
+total. The brief fix closed "go ahead with implementation" but not "start with
+task N". Rule added to `STANDING_RULES` in `harness/simulator.py`: never tell the
+assistant to start, implement, execute, or proceed with any task or step unless
+the brief explicitly says so; when the brief says the work happens later, approve
+and stop. Replayed the saved gate message through the simulator three times with
+the new rule (haiku-4-5, 0.006 to 0.013 USD each): replies approve, answer the
+TTL and per-credential facts from the brief, send the fallback for the uncovered
+questions and for the execution approach, and none instructs the assistant to
+start or implement anything ("Task is complete" in one). Frozen again.
+
 ## ni arm terse proof (deferred from task 2)
 
 From the run-1 ni session log
