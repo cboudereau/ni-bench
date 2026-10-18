@@ -5,6 +5,7 @@ no docker, no credentials (task 4 acceptance criteria).
 """
 
 import json
+import os
 import re
 import subprocess
 
@@ -289,6 +290,29 @@ def test_fixture_diff_survives_an_arm_commit(tmp_path):
     assert result.artifact_metrics["files_changed"] == 1
     assert result.artifact_metrics["plan_files"] == ["PLAN.md"]
     assert result.artifact_metrics["plan_words"] == 5
+
+
+def test_workspace_repo_carries_a_git_identity_for_the_arm(tmp_path):
+    # run-20261018-070444: 12 trials hit "Author identity unknown" when a
+    # plugin flow committed (mattpocock implement, superpowers builds); one
+    # trial ended asking the user for a name and email. The workspace repo
+    # must let a plain `git commit` succeed, with no -c flags and no HOME
+    # config, identically for every arm.
+    trial_dir = tmp_path / "plan-easy" / "baseline" / "t1"
+
+    def plain_commit(_cmd):
+        ws = trial_dir / "workspace"
+        (ws / "PLAN.md").write_text("a plan with five words\n")
+        env = {"PATH": os.environ["PATH"], "HOME": str(tmp_path / "empty-home"),
+               "GIT_CONFIG_GLOBAL": "/dev/null", "GIT_CONFIG_SYSTEM": "/dev/null"}
+        subprocess.run(["git", "add", "-A"], cwd=ws, check=True, env=env, capture_output=True)
+        subprocess.run(["git", "commit", "-q", "-m", "arm commit"], cwd=ws, check=True,
+                       env=env, capture_output=True)
+
+    ex = Scripted(subject=[cli_json(COMPLETION)], on_subject=plain_commit)
+    result = run_trial(BASELINE, PLAN_EASY, "t1", results_root=tmp_path, executor=ex)
+    assert result.error is None
+    assert result.artifact_metrics["plan_files"] == ["PLAN.md"]
 
 
 def test_run_trial_sends_arm_prompt_variant(tmp_path):

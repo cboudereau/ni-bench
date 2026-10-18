@@ -271,6 +271,11 @@ def run_trial(
 
     _prepare_workspace(scenario.id, workspace)
     _git(workspace, "init", "-q")
+    # repo-local identity so a plugin flow's plain `git commit` succeeds: the
+    # throwaway HOME has no .gitconfig, and run-20261018-070444 lost cells to
+    # "Author identity unknown" (committing arms only, an environment bias)
+    _git(workspace, "config", "user.name", "ni-bench-subject")
+    _git(workspace, "config", "user.email", "subject@ni-bench.invalid")
     _git(workspace, "add", "-A")
     _git(workspace, "commit", "-q", "--allow-empty", "-m", "fixture baseline")
     # the diff reference: an arm may commit, branch, or merge during the
