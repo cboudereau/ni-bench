@@ -56,6 +56,17 @@ as noise. The old-rubric scores of run-20261018-162054 stay in its folder.
 Survivorship across runs: ni is the only arm iterated against these scenarios
 between the five same-day runs; the other arms ran their fixed releases once each.
 
+Discriminant check (2026-10-19, `.reports/rejudge21-070444` and
+`.reports/rejudge21-120948`, 105/105 each): the two ni versions written before the
+slice rule, re-judged under v2.1, land where the other arms land. plan-complex
+`agent_executability` medians: ni 2.1.0 62, ni 2.2.0 at b7f161f 70, against
+baseline 60 to 62, openspec 62, superpowers 70 to 72, mattpocock 52 to 55 on the
+same re-judged runs. The notes name the same fault for both: "layer-by-layer
+(scaffold, models, store, cache, limiter, retry, and only then the client in task
+7)". Every other scenario stayed within drift across all five ni versions. The
+item therefore separates layered from sliced plans by the same author, not ni
+from the other plugins; the slice rule (b149e13) is what moved ni from 62 to 84.
+
 ## `needs_user_reply` heuristic — ONE fix, frozen
 
 Run 1 evidence: the superpowers arm ended with a genuine question
