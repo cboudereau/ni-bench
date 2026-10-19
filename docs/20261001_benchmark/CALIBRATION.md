@@ -53,6 +53,8 @@ dropped for every arm: ni made no commits headless (judged from the transcript),
 superpowers one commit at the end. The debug family rose 5 to 20 points for
 every arm under an unchanged debugging definition: prompt-length drift, treated
 as noise. The old-rubric scores of run-20261018-162054 stay in its folder.
+Survivorship across runs: ni is the only arm iterated against these scenarios
+between the five same-day runs; the other arms ran their fixed releases once each.
 
 ## `needs_user_reply` heuristic — ONE fix, frozen
 

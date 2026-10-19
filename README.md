@@ -103,10 +103,10 @@ Extra checks:
 - One table per scenario, origin-tagged (home-grown or superpowers-evals). Rows = KPIs, columns = arms, cell = `score% (raw)`.
 - Every percent reads higher = better; 100% = best arm in that row:
   - Resource KPIs (`tokens_total`, `cost_usd`, `duration_s`, `turns`, `user_turns`, `plan_words`): raw is lower-better, normalised `min(arms)/value × 100`.
-  - Judge KPIs (`plan_quality`, `verbosity_score`): the blind judge's 0–100 score, shown directly.
+  - Judge KPIs (`human_readability`, `agent_executability`, `verbosity_score`): the blind judge's 0–100 scores, shown directly.
   - `outcome`: pass-rate over determinate trials.
-- `plan_words` is scored only among arms with `plan_quality ≥ 50` (quality floor); below-floor arms show `— (raw)`. A one-word plan cannot win verbosity.
-- Verdict rule: deterministic postchecks override the judge — a postcheck fail is a fail regardless of judge score; with green postchecks, `plan_quality < 50` still fails the trial.
+- `plan_words` is scored only among arms with `human_readability ≥ 50` (quality floor); below-floor arms show `— (raw)`. A one-word plan cannot win verbosity.
+- Verdict rule: deterministic postchecks override the judge — a postcheck fail is a fail regardless of judge score; with green postchecks, `human_readability < 50` still fails the trial.
 - `indeterminate` footnote row: trials excluded from medians (infra errors, timeouts, judge parse failures).
 
 ### Writing ANALYSIS.md
