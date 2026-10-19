@@ -22,6 +22,12 @@ Deliverables are per-run local artifacts (git-excluded): each run folder under .
 - [Fifth arm: mattpocock-skills skill mapping and install source](adrs/mattpocock-skill-mapping.md)
 - [Fifth arm: headless tracker seed in the throwaway HOME](adrs/mattpocock-tracker-seed.md)
 
+## Open enhancements
+
+- **Two-stage execution scenario.** Every build scenario plans and executes in one session with one model, so a plugin's claim that its task list carries a weaker executor is never tested. Stage 1: the arm plans with the run's `ANTHROPIC_MODEL`. Stage 2: a fresh session, no `--resume`, executes from the workspace artifacts alone with `claude-haiku-5-5`. KPIs: postcheck pass, commits per task, `user_turns` in stage 2. Needs a per-stage model in the runner (the compose pass-through of `ANTHROPIC_MODEL` already exists) and a scenario field naming the stage-2 prompt. Until then the proxy is `ANTHROPIC_MODEL=claude-haiku-5-5 BENCH_SCENARIOS=build-small,ported-build ./scripts/bench.sh` against the sonnet run of the same scenarios.
+- **Build-row trophy threshold.** The replication pair run-20261018-181207 / run-20261019-095458 (same ni skills, same rubric) moved build-scenario `agent_executability` by 10 (ni) and 15 (mattpocock) points with no skill change; plan and debug rows moved 0 to 3. The README promotion rule (gap over 5 on a judge row) should require a gap over 10 on build rows.
+- **Tool-call capture.** The judge reads the subject's final message plus the commit log and workspace diff; `claude -p --output-format json` keeps no tool calls, so red and green runs are claims in every arm. `--output-format stream-json` would let the judge verify them.
+
 ## Audit
 
 - [CALIBRATION.md](CALIBRATION.md) — frozen rubric, question-detection heuristic, brief fixes, infra bugs found during smoke

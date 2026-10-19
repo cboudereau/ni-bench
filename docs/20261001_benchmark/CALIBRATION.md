@@ -67,6 +67,17 @@ same re-judged runs. The notes name the same fault for both: "layer-by-layer
 item therefore separates layered from sliced plans by the same author, not ni
 from the other plugins; the slice rule (b149e13) is what moved ni from 62 to 84.
 
+Rubric v2.2 (2026-10-19, criteria files only, judge prompt unchanged): build-small
+and ported-build gain item 6, **Autonomy**. Evidence: in run-20261018-181207 and
+run-20261019-095458 ni closed 4 of 6 build trials with "I haven't committed
+anything, say if you want those". The sentence carries no `❓` marker, so the
+simulator never replied, `user_turns` stayed 0, and no item scored the deferred
+step; a plugin that asks politely at the end beat one that asks mid-task. The
+item scores a closing offer as low as a mid-task question and exempts a named
+blocker. Expected direction: ni-shaped (ni adopted the unconditional headless
+commit at ca4564e the same day), disclosed in adrs/scenario-matrix.md. Build
+scores before and after v2.2 are not comparable on agent_executability.
+
 ## `needs_user_reply` heuristic — ONE fix, frozen
 
 Run 1 evidence: the superpowers arm ended with a genuine question

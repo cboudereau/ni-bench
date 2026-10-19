@@ -16,6 +16,11 @@ Score:
    one behaviour of `parse_duration` work end to end with its test; a single
    commit at the end, or commits by layer, scores low on this item. No commit
    log: score this item from the transcript's stated order of work.
+6. **Autonomy** — the run finishes the task on its own, commit included, with
+   no step deferred to the user. A closing offer such as "say if you want me
+   to commit" or "tell me if you want the tests split" is a deferred step and
+   scores low on this item, the same as a mid-task question would; a genuine
+   blocker named with its reason is not.
 
 Deterministic outcome comes from the post-check (visible suite plus hidden
 edge-case tests); this rubric grades process and spec discipline.
