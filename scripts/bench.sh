@@ -5,6 +5,8 @@
 #   ./scripts/bench.sh            # full matrix, n=3
 #   BENCH_N=1 ./scripts/bench.sh  # cheaper run
 #   ./scripts/bench.sh smoke      # plan-easy only, n=1
+#   BENCH_SCENARIOS=build-small,ported-build ./scripts/bench.sh   # partial matrix
+#   ANTHROPIC_MODEL=claude-haiku-5-5 ./scripts/bench.sh          # subject model for this run only
 #
 # The run folder .reports/run-<timestamp>/ receives the trial dirs,
 # matrix.json, REPORT.md, and an ANALYSIS.md stub. The analysis reading
@@ -33,8 +35,10 @@ echo "plugin versions: $BENCH_PLUGIN_OVERRIDES"
 
 # Models: the subject model is mandatory in .env so a run never depends on
 # the arm CLI's own default (REPORT.md records the one actually billed);
-# judge and simulator are pinned in the harness.
-SUBJECT_MODEL="$( { grep -E '^ANTHROPIC_MODEL=' .env 2>/dev/null || true; } | tail -1 | cut -d= -f2-)"
+# judge and simulator are pinned in the harness. A value in the shell
+# environment wins for this run (docker-compose.yml passes it through to the
+# arm containers; unset, the .env line stands).
+SUBJECT_MODEL="${ANTHROPIC_MODEL:-$( { grep -E '^ANTHROPIC_MODEL=' .env 2>/dev/null || true; } | tail -1 | cut -d= -f2-)}"
 if [ -z "$SUBJECT_MODEL" ]; then
   echo "bench: ANTHROPIC_MODEL is not set in .env (see .env.example)" >&2
   exit 1
@@ -48,9 +52,14 @@ N="${BENCH_N:-3}"
 STAMP="$(date +%Y%m%d-%H%M%S)"
 RUN_DIR=".reports/run-$STAMP"
 mkdir -p "$RUN_DIR"
+SCENARIO_ARGS=()
+if [ -n "${BENCH_SCENARIOS:-}" ]; then
+  SCENARIO_ARGS=(--scenarios "$BENCH_SCENARIOS")
+  echo "scenarios: $BENCH_SCENARIOS (partial matrix)"
+fi
 echo "run folder: $RUN_DIR (mode=$MODE, n=$N)"
 
-uv run python -m harness.run "$MODE" --n "$N" --results-root "$RUN_DIR"
+uv run python -m harness.run "$MODE" --n "$N" --results-root "$RUN_DIR" "${SCENARIO_ARGS[@]}"
 ./scripts/judge.sh "$RUN_DIR"
 uv run python -m harness.report "$RUN_DIR" "$RUN_DIR/REPORT.md"
 ./scripts/cost-check.sh "$RUN_DIR"

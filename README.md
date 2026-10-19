@@ -27,7 +27,7 @@ CLAUDE_CODE_OAUTH_TOKEN=<TOKEN>
 ANTHROPIC_MODEL=claude-sonnet-5-5
 ```
 
-`ANTHROPIC_MODEL` is the subject model for every arm and is required: `bench.sh` refuses to start without it, so a run never silently inherits the CLI default. Swap it for a cheaper (`claude-haiku-5-5`) or stronger model per run. The judge and simulator pin their own models. REPORT.md records the model actually billed.
+`ANTHROPIC_MODEL` is the subject model for every arm and is required: `bench.sh` refuses to start without it, so a run never silently inherits the CLI default. Swap it for a cheaper (`claude-haiku-5-5`) or stronger model per run, in `.env` or for one run in the shell (`ANTHROPIC_MODEL=claude-haiku-5-5 ./scripts/bench.sh`; the shell value is passed through to the arm containers and wins). The judge and simulator pin their own models. REPORT.md records the model actually billed.
 
 ## 2. How to run the benchmark
 
@@ -37,7 +37,11 @@ One command per run; each run gets a dedicated timestamped folder:
 ./scripts/bench.sh            # full matrix: 5 arms x 7 scenarios, n=3 — cost guard 50 x n USD
 BENCH_N=1 ./scripts/bench.sh  # cheaper full matrix (n=1)
 ./scripts/bench.sh smoke      # plan-easy only, n=1 — a few USD
+BENCH_SCENARIOS=build-small,ported-build ./scripts/bench.sh   # partial matrix, named scenarios only
+ANTHROPIC_MODEL=claude-haiku-5-5 BENCH_SCENARIOS=build-small,ported-build ./scripts/bench.sh   # weaker executor on the build family
 ```
+
+A partial matrix renders only the scenarios it ran; an unknown scenario id stops the run before any trial. The weaker-executor run measures how much each plugin's instructions lean on model strength: compare its pass rate, commits per task, and `user_turns` with the sonnet run of the same scenarios.
 
 The run folder `.reports/run-<timestamp>/` receives:
 
