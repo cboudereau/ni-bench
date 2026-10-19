@@ -172,6 +172,15 @@ the level banner comes from the state-file hook and was injected regardless.
 4. **Judge wiring** — judging was not invoked by any script; added
    `harness.judge` CLI + `scripts/judge.sh`, called from `run.sh` after smoke and
    matrix (cost-guard partial exit still judges completed trials).
+5. **Repo-local git identity** — 12 of 105 trials in run-20261018-095422 failed a
+   plain `git commit` with "Author identity unknown"; only committing arms paid for
+   it. Fix: `_prepare_workspace` sets `user.name` and `user.email` in the workspace
+   repository, identical for every arm.
+6. **Fixture `.gitignore`** — the two build fixtures shipped none, so every commit an
+   arm made under rubric v2.1 carried `__pycache__/*.pyc` and the judge docked it
+   (run-20261018-181207 and run-20261019-095458, every ni commit). Fix: both fixtures
+   ship a `.gitignore` for `__pycache__/`, `*.pyc`, and `.pytest_cache/`, copied into
+   the workspace like any fixture file. Applies to every arm from the next run.
 
 ## Recorded spend (NFR2)
 
