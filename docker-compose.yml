@@ -37,6 +37,8 @@ services:
       args:
         # local: an unpublished checkout staged by scripts/stage-ni-local.sh
         NI_SOURCE: ${NI_SOURCE:-marketplace}
+        # cache-buster for the marketplace stage, set per run by scripts/ni-source.sh
+        NI_REFRESH: ${NI_REFRESH:-0}
 
   mattpocock:
     <<: *common

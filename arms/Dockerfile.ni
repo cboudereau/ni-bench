@@ -6,10 +6,15 @@
 ARG NI_SOURCE=marketplace
 
 FROM ni-bench-base AS marketplace
+# NI_REFRESH changes on every bench run (scripts/ni-source.sh), so the install
+# layer below is never served from the build cache and the image always holds
+# the release published at run time, not at the first build.
+ARG NI_REFRESH=0
 # The marketplace declares ni with a github source, which the CLI clones over
 # SSH; no SSH host key exists in the image, so rewrite to HTTPS for the build
 # only, then drop the .gitconfig to keep arm HOMEs symmetric across arms.
-RUN HOME=/opt/arm-home git config --global url.'https://github.com/'.insteadOf 'git@github.com:' \
+RUN echo "ni marketplace refresh $NI_REFRESH" \
+ && HOME=/opt/arm-home git config --global url.'https://github.com/'.insteadOf 'git@github.com:' \
  && HOME=/opt/arm-home git config --global --add url.'https://github.com/'.insteadOf 'ssh://git@github.com/' \
  && HOME=/opt/arm-home claude plugin marketplace add itsaspacestation/claude-marketplace \
  && HOME=/opt/arm-home claude plugin install ni@itsaspacestation \
