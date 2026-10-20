@@ -271,8 +271,17 @@ def run_trial(
 
     _prepare_workspace(scenario.id, workspace)
     _git(workspace, "init", "-q")
+    # repo-local identity so a plugin flow's plain `git commit` succeeds: the
+    # throwaway HOME has no .gitconfig, and run-20261018-070444 lost cells to
+    # "Author identity unknown" (committing arms only, an environment bias)
+    _git(workspace, "config", "user.name", "ni-bench-subject")
+    _git(workspace, "config", "user.email", "subject@ni-bench.invalid")
     _git(workspace, "add", "-A")
     _git(workspace, "commit", "-q", "--allow-empty", "-m", "fixture baseline")
+    # the diff reference: an arm may commit, branch, or merge during the
+    # trial, so HEAD is not a stable baseline (run-20261017-133523 lost four
+    # cells' artifacts to an index-vs-HEAD diff after arm commits)
+    baseline_sha = _git(workspace, "rev-parse", "HEAD").strip()
 
     # per-arm prompt variant when one exists (explicit-flow-track ADR)
     prompt = arm_prompt_path(scenario.id, arm.name).read_text(encoding="utf-8")
@@ -332,9 +341,9 @@ def run_trial(
     )
     _git(workspace, "add", "-A")
     (trial_dir / "fixture.diff").write_text(
-        _git(workspace, "diff", "--cached"), encoding="utf-8"
+        _git(workspace, "diff", "--cached", baseline_sha), encoding="utf-8"
     )
-    changed = _git(workspace, "diff", "--cached", "--name-only").split()
+    changed = _git(workspace, "diff", "--cached", "--name-only", baseline_sha).split()
 
     metrics = artifact_metrics(workspace, arm, changed)
     metrics["files_changed"] = len(changed)

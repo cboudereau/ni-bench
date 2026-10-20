@@ -3,9 +3,10 @@
 # Runs without .env and without API calls.
 #   1) compose config declares no forbidden bind mounts (host ~/.claude, ~/.config,
 #      or anything outside the repo tree except trial dirs)
-#   2) each of the 5 services contains exactly its own plugin (baseline, openspec,
+#   2) each of the 6 services contains exactly its own plugin (baseline, openspec,
 #      harness: none)
-#   3) openspec CLI present with telemetry off; ni terse level seeded to `full`
+#   3) openspec CLI present with telemetry off; ni terse level seeded to `full`;
+#      mattpocock tracker-seed hook present
 set -euo pipefail
 cd "$(dirname "$0")/.."
 export PATH="$HOME/.local/bin:$PATH"
@@ -68,6 +69,7 @@ check_plugins openspec ""
 check_plugins harness ""
 check_plugins superpowers "superpowers@superpowers-marketplace"
 check_plugins ni "ni@itsaspacestation"
+check_plugins mattpocock "mattpocock-skills@mattpocock"
 
 say "== 3. arm-specific configuration =="
 if run_in openspec openspec --version | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+'; then
@@ -99,6 +101,13 @@ if [ "$(run_in ni cat /home/node/.claude/ni/terse)" = "full" ]; then
   say "OK: ni terse level seeded to full"
 else
   say "FAIL: ni terse seed missing or wrong"
+  fail=1
+fi
+# mattpocock tracker seed: init hook must be baked into the image (tracker-seed ADR)
+if run_in mattpocock test -f /opt/arm-init.d/mattpocock-init.sh; then
+  say "OK: mattpocock tracker-seed hook present"
+else
+  say "FAIL: mattpocock tracker-seed hook missing"
   fail=1
 fi
 

@@ -1,6 +1,6 @@
 # ni-bench
 
-Benchmark comparing Claude Code plugins (baseline, openspec, superpowers, ni) on identical scenarios in isolated Docker arms, scored by a blind LLM judge plus deterministic post-checks. Design and ADRs: [docs/20261001_benchmark/](docs/20261001_benchmark/README.md).
+Benchmark comparing Claude Code plugins (baseline, openspec, superpowers, ni, mattpocock) on identical scenarios in isolated Docker arms, scored by a blind LLM judge plus deterministic post-checks. Design and ADRs: [docs/20261001_benchmark/](docs/20261001_benchmark/README.md).
 
 ## 1. Setup
 
@@ -11,7 +11,7 @@ Prerequisites:
 - [uv](https://docs.astral.sh/uv/) on PATH (`export PATH="$HOME/.local/bin:$PATH"`)
 - A trusted machine: arm containers run `--dangerously-skip-permissions`; never run the matrix on a host with secrets mounted into the repo
 
-Credential — one variable in `.env` at the repo root (gitignored, never baked into images).
+`.env` at the repo root (gitignored, never baked into images) holds two required variables: the credential and the subject model.
 
 Option A, subscription token (bills your Claude plan). `claude setup-token` is interactive: never wrap it in command substitution or pipes, its prompts get captured and the command hangs.
 
@@ -24,17 +24,24 @@ Option A, subscription token (bills your Claude plan). `claude setup-token` is i
 4. Write the `.env` file:
 ```bash
 CLAUDE_CODE_OAUTH_TOKEN=<TOKEN>
+ANTHROPIC_MODEL=claude-sonnet-5-5
 ```
+
+`ANTHROPIC_MODEL` is the subject model for every arm and is required: `bench.sh` refuses to start without it, so a run never silently inherits the CLI default. Swap it for a cheaper (`claude-haiku-5-5`) or stronger model per run, in `.env` or for one run in the shell (`ANTHROPIC_MODEL=claude-haiku-5-5 ./scripts/bench.sh`; the shell value is passed through to the arm containers and wins). The judge and simulator pin their own models. REPORT.md records the model actually billed.
 
 ## 2. How to run the benchmark
 
 One command per run; each run gets a dedicated timestamped folder:
 
 ```bash
-./scripts/bench.sh            # full matrix: 4 arms x 7 scenarios, n=3 — cost guard 50 x n USD
+./scripts/bench.sh            # full matrix: 5 arms x 7 scenarios, n=3 — cost guard 50 x n USD
 BENCH_N=1 ./scripts/bench.sh  # cheaper full matrix (n=1)
 ./scripts/bench.sh smoke      # plan-easy only, n=1 — a few USD
+BENCH_SCENARIOS=build-small,ported-build ./scripts/bench.sh   # partial matrix, named scenarios only
+ANTHROPIC_MODEL=claude-haiku-5-5 BENCH_SCENARIOS=build-small,ported-build ./scripts/bench.sh   # weaker executor on the build family
 ```
+
+A partial matrix renders only the scenarios it ran; an unknown scenario id stops the run before any trial. The weaker-executor run measures how much each plugin's instructions lean on model strength: compare its pass rate, commits per task, and `user_turns` with the sonnet run of the same scenarios.
 
 The run folder `.reports/run-<timestamp>/` receives:
 
@@ -44,6 +51,20 @@ The run folder `.reports/run-<timestamp>/` receives:
 - `ANALYSIS.md` stub (the reading — see section 3)
 
 All run outputs are local and git-excluded. Live trials bill real API spend; the cost guard stops the matrix at 50 × n USD and marks the report partial.
+
+Plugin versions are resolved once, at image build; a cached rebuild keeps them. To move every arm to its plugin's current latest before a run:
+
+```bash
+./scripts/build.sh --no-cache   # reinstalls every plugin; the header records what resolved
+```
+
+To benchmark an unpublished ni checkout, name it and run as usual; unset, the ni arm reinstalls the latest release at the start of every run (the `plugin versions:` line shows which one):
+
+```bash
+NI_LOCAL_SRC=/path/to/natural-intelligence ./scripts/bench.sh smoke   # or a line in .env
+```
+
+The checkout is staged as a local marketplace (`arms/ni-local/`, git-ignored) and the ni arm is rebuilt on every run from its current state. The header shows the version as `<version>+local.<sha>`, so a checkout is never mistaken for a release.
 
 Each finished trial prints one progress line to stdout:
 
@@ -86,10 +107,10 @@ Extra checks:
 - One table per scenario, origin-tagged (home-grown or superpowers-evals). Rows = KPIs, columns = arms, cell = `score% (raw)`.
 - Every percent reads higher = better; 100% = best arm in that row:
   - Resource KPIs (`tokens_total`, `cost_usd`, `duration_s`, `turns`, `user_turns`, `plan_words`): raw is lower-better, normalised `min(arms)/value × 100`.
-  - Judge KPIs (`plan_quality`, `verbosity_score`): the blind judge's 0–100 score, shown directly.
+  - Judge KPIs (`human_readability`, `agent_executability`, `verbosity_score`): the blind judge's 0–100 scores, shown directly.
   - `outcome`: pass-rate over determinate trials.
-- `plan_words` is scored only among arms with `plan_quality ≥ 50` (quality floor); below-floor arms show `— (raw)`. A one-word plan cannot win verbosity.
-- Verdict rule: deterministic postchecks override the judge — a postcheck fail is a fail regardless of judge score; with green postchecks, `plan_quality < 50` still fails the trial.
+- `plan_words` is scored only among arms with `human_readability ≥ 50` (quality floor); below-floor arms show `— (raw)`. A one-word plan cannot win verbosity.
+- Verdict rule: deterministic postchecks override the judge — a postcheck fail is a fail regardless of judge score; with green postchecks, `human_readability < 50` still fails the trial.
 - `indeterminate` footnote row: trials excluded from medians (infra errors, timeouts, judge parse failures).
 
 ### Writing ANALYSIS.md

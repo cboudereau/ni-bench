@@ -21,6 +21,8 @@ def test_result_schema_roundtrip():
     assert TrialResult.from_dict(json.loads(payload)) == result
 
 
-def test_arm_registry_lists_four_arms():
-    # harness is a 5th compose service, not a subject arm
-    assert [arm.name for arm in ARMS] == ["baseline", "openspec", "superpowers", "ni"]
+def test_arm_registry_lists_five_arms():
+    # harness is a 6th compose service, not a subject arm
+    assert [arm.name for arm in ARMS] == [
+        "baseline", "openspec", "superpowers", "ni", "mattpocock",
+    ]

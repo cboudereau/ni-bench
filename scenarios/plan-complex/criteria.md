@@ -19,7 +19,11 @@ Then score:
 4. **Testability** — test strategy names how rate limiting and retries are
    tested without the real API (fakes/clock control), and cache persistence
    round-trip tests.
-5. **Actionability** — ordered task breakdown small enough to implement from.
+5. **Actionability** — ordered task breakdown small enough to implement from,
+   where each task is one behaviour verifiable end to end through the client's
+   public surface, the first task being the thinnest path that runs. A
+   layer-by-layer sequence (models, then store, then limiter, then client, with
+   nothing runnable until the end) scores low on this item.
 
 Penalise: implementation instead of a plan; ignoring either hard decision;
 invented requirements (multi-machine cache, async rewrite) not asked for.

@@ -124,6 +124,8 @@ def test_plan_fixture_has_no_markdown():
 
 # --- explicit-flow prompt variants (explicit-flow-track ADR) ---------------
 
+# mattpocock is excluded here: its flagship skills are user-invoked, so its
+# variant leads with a slash command (skill-mapping ADR, Invocation section)
 PLUGIN_ARMS = ("ni", "openspec", "superpowers")
 
 
@@ -137,13 +139,13 @@ def test_arm_prompt_falls_back_to_shared_prompt():
 
 
 def test_arm_prompt_prefers_variant_for_debug_and_build_families():
-    # explicit-flow scope extension: ni and superpowers on debug scenarios,
-    # ni, superpowers, and openspec on build scenarios
+    # explicit-flow scope extension: ni, superpowers, and mattpocock on debug
+    # scenarios; ni, superpowers, openspec, and mattpocock on build scenarios
     for sid in ("debug-easy", "debug-complex", "ported-debug"):
-        for arm in ("ni", "superpowers"):
+        for arm in ("ni", "superpowers", "mattpocock"):
             assert arm_prompt_path(sid, arm) == scenario_dir(sid) / f"prompt-{arm}.md"
     for sid in ("build-small", "ported-build"):
-        for arm in ("ni", "superpowers", "openspec"):
+        for arm in ("ni", "superpowers", "openspec", "mattpocock"):
             assert arm_prompt_path(sid, arm) == scenario_dir(sid) / f"prompt-{arm}.md"
 
 
@@ -160,6 +162,34 @@ def test_arm_prompt_prefers_arm_variant_for_plan_family():
             extra = variant[len(base.rstrip("\n")):].strip()
             assert len(extra.splitlines()) == 1, f"{sid}/{arm}: more than one extra line"
             assert "workflow" in extra, f"{sid}/{arm}: extra line does not name a workflow"
+
+
+SLASH_ENTRY = {
+    "plan-easy": "grill-with-docs",
+    "plan-complex": "grill-with-docs",
+    "debug-easy": "diagnosing-bugs",
+    "debug-complex": "diagnosing-bugs",
+    "ported-debug": "diagnosing-bugs",
+    "build-small": "implement",
+    "ported-build": "implement",
+}
+
+
+def test_mattpocock_variant_parity_all_families():
+    """mattpocock has a flow for every family (skill-mapping ADR, NFR1): every
+    variant is one slash-command line (the arm's user-invoked entry skill),
+    then the control prompt byte for byte, then exactly one workflow line."""
+    for sid in SCENARIO_IDS:
+        base = (scenario_dir(sid) / "prompt.md").read_text(encoding="utf-8").rstrip("\n")
+        path = arm_prompt_path(sid, "mattpocock")
+        assert path == scenario_dir(sid) / "prompt-mattpocock.md", sid
+        variant = path.read_text(encoding="utf-8")
+        head, _, rest = variant.partition("\n\n")
+        assert head == f"/mattpocock-skills:{SLASH_ENTRY[sid]}", f"{sid}: wrong slash entry"
+        assert rest.startswith(base), f"{sid} diverges from control"
+        extra = rest[len(base):].strip()
+        assert len(extra.splitlines()) == 1, f"{sid}: more than one extra line"
+        assert "workflow" in extra, f"{sid}: extra line does not name a workflow"
 
 
 def test_repo_root_points_at_worktree():

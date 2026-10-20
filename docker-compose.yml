@@ -1,9 +1,14 @@
-# Isolation manifest (isolation-docker-compose ADR): 4 subject arms + harness service.
+# Isolation manifest (isolation-docker-compose ADR): 5 subject arms + harness service.
 # No host ~/.claude or ~/.config mounts, ever. Credential only via env_file .env.
 x-common: &common
   env_file:
     - path: .env
       required: false # committed .env.example documents the keys; .env is local-only
+  environment:
+    # bare name: passed through only when set in the shell running compose,
+    # so `ANTHROPIC_MODEL=... ./scripts/bench.sh` overrides the .env line for
+    # one run and an unset shell leaves the .env value in place
+    - ANTHROPIC_MODEL
 
 services:
   baseline:
@@ -29,6 +34,17 @@ services:
     build:
       context: arms
       dockerfile: Dockerfile.ni
+      args:
+        # local: an unpublished checkout staged by scripts/stage-ni-local.sh
+        NI_SOURCE: ${NI_SOURCE:-marketplace}
+        # cache-buster for the marketplace stage, set per run by scripts/ni-source.sh
+        NI_REFRESH: ${NI_REFRESH:-0}
+
+  mattpocock:
+    <<: *common
+    build:
+      context: arms
+      dockerfile: Dockerfile.mattpocock
 
   # simulator + judge; plugin-free, reuses the base image — not a subject arm
   harness:

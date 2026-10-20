@@ -28,7 +28,8 @@ from harness.models import JudgeScore, TrialResult, Verdict
 # The exact NFR4 measure: zero word-bounded, case-insensitive matches.
 NFR4_PATTERN = re.compile(
     r"\b(ni|openspec|opsx|superpowers|baseline|natural-intelligence"
-    r"|fission|obra|itsaspacestation|terse)\b",
+    r"|fission|obra|itsaspacestation|terse|mattpocock|pocock|ask-matt"
+    r"|grill-with-docs|grilling|grill|wayfinder|tracer-bullet)\b|\.scratch/",
     re.IGNORECASE,
 )
 
@@ -47,11 +48,17 @@ ADVERSARIAL_SAMPLES = [
     "docs/workspace/benchmark/TASKS.md holds the plan",
     "docs/plans/2026-09-30-feature.md written",
     "ni-bench harness, ni.terse=full",
+    "mattpocock-skills@mattpocock installed",
+    "ran /grill-with-docs then /to-spec",
+    ".scratch/json-output/issues/01-wire-flag.md",
+    "Matt Pocock's wayfinder map",
+    "tracer-bullet tickets",
 ]
 
 SURVIVOR_TEXT = (
     "The initial opus showed terseness; a knight paid in nickel "
-    "kept fissionable baselines and openspecial obradoiro plans, opsxy."
+    "kept fissionable baselines and openspecial obradoiro plans, opsxy. "
+    "A grille, a pocket, wayfarer glasses, and a scratchpad."
 )
 
 
@@ -78,6 +85,14 @@ def test_blind_rewrites_plugin_paths_to_neutral_workspace():
         == f"{ARM_WORKSPACE}/benchmark/DESIGN.md"
     )
     assert blind("docs/plans/2026-plan.md") == f"{ARM_WORKSPACE}/2026-plan.md"
+
+
+def test_blind_rewrites_scratch_root():
+    # the dot is part of the root: no word boundary precedes it
+    assert (
+        blind(".scratch/json-output/spec.md")
+        == f"{ARM_WORKSPACE}/json-output/spec.md"
+    )
 
 
 def test_blind_replacement_token_is_neutral():
@@ -107,6 +122,40 @@ def test_explicit_flow_prompt_variants_blind_clean():
                 "prompt", "criteria", f"ASSISTANT:\nFollowing the instruction: {text}", {}
             )
             assert not NFR4_PATTERN.search(quoted), f"{sid}/{arm} leaks via judge input"
+
+
+def test_judge_input_carries_the_commit_log_blinded():
+    # rubric v2.1: the subject's commit log reaches the judge so the path
+    # taken (slices or layers) is visible, and it is blinded like the rest
+    text = assemble_judge_input(
+        "prompt", "criteria", "ASSISTANT:\ndone", {},
+        commit_log="a1b2c3d feat: superpowers plan\n docs/plans/x.md | 1 +",
+    )
+    assert "## Commit log" in text
+    assert "a1b2c3d feat:" in text
+    assert not NFR4_PATTERN.search(text)
+    assert "(no commit made)" in assemble_judge_input("p", "c", "t", {})
+
+
+def test_load_commit_log_skips_the_fixture_baseline(tmp_path):
+    import subprocess
+
+    from harness.judge import _load_commit_log
+
+    ws = tmp_path / "workspace"
+    ws.mkdir()
+    env = ["git", "-C", str(ws), "-c", "user.email=t@t", "-c", "user.name=t"]
+    subprocess.run([*env, "init", "-q"], check=True)
+    subprocess.run([*env, "commit", "-q", "--allow-empty", "-m", "fixture baseline"], check=True)
+    assert _load_commit_log(tmp_path) == ""
+    (ws / "a.py").write_text("x = 1\n")
+    subprocess.run([*env, "add", "-A"], check=True)
+    subprocess.run([*env, "commit", "-q", "-m", "feat: add returns an id"], check=True)
+    log = _load_commit_log(tmp_path)
+    assert "feat: add returns an id" in log
+    assert "a.py" in log
+    assert "fixture baseline" not in log
+    assert _load_commit_log(tmp_path / "missing") == ""
 
 
 # --- verdict combination -------------------------------------------------

@@ -23,6 +23,72 @@ bug, see below). Evidence checked:
 
 Verdict: rubric wording kept verbatim from task 5. Frozen.
 
+Rubric v2.1 (2026-10-18, reopened on new evidence): the judge saw final messages
+and markdown artifacts only, so it could not tell a plan or a build made of
+vertical slices from one assembled layer by layer; runs 20261018-070444 and
+20261018-120948 showed ni planning the complex scenario as models, store,
+limiter, client with nothing runnable before task 7, and the scores could not
+see it. Three changes, applied to every arm alike: (1) the judge input gains a
+"Commit log" section, the subject's own commits in the trial workspace after
+the fixture baseline, oldest first with the files per commit (`judge.py`,
+`_load_commit_log`; blinded like the rest); (2) the `agent_executability`
+definition asks whether tasks are behaviours verifiable end to end through the
+public surface and, for builds, whether each commit makes one behaviour work,
+the thinnest path first; (3) criteria: plan-complex item 5 and a new item 5 on
+build-small and ported-build score slices, with a layer-by-layer sequence or a
+single end commit scoring low. Judge self-variance measured on the old rubric
+by re-judging run-20261018-070444 (`.reports/rejudge-070444`): mean absolute
+drift 2.2 human_readability, 3.1 agent_executability, 1.4 verbosity, max 17.
+Scores before and after v2.1 are not comparable on those items; the arm that
+was taught slicing the same day is ni (version 2.2.0), disclosed in the
+scenario-matrix bias table. Frozen again.
+
+Verification (`.reports/rejudge-162054`, run-20261018-162054 re-judged under
+v2.1 on identical inputs, 105/105): plan-complex `agent_executability` medians
+old → v2.1: baseline 85 → 62, openspec 86 → 62, superpowers 92 → 70, mattpocock
+76 → 55, ni 90 → 84 (ni's plans in that run were already behaviour slices; the
+others were layer sequences, and the notes say so: "nothing runs end to end
+until Task 6"). Readability moved within drift for every arm. Build scenarios
+dropped for every arm: ni made no commits headless (judged from the transcript),
+superpowers one commit at the end. The debug family rose 5 to 20 points for
+every arm under an unchanged debugging definition: prompt-length drift, treated
+as noise. The old-rubric scores of run-20261018-162054 stay in its folder.
+Survivorship across runs: ni is the only arm iterated against these scenarios
+between the five same-day runs; the other arms ran their fixed releases once each.
+
+Discriminant check (2026-10-19, `.reports/rejudge21-070444` and
+`.reports/rejudge21-120948`, 105/105 each): the two ni versions written before the
+slice rule, re-judged under v2.1, land where the other arms land. plan-complex
+`agent_executability` medians: ni 2.1.0 62, ni 2.2.0 at b7f161f 70, against
+baseline 60 to 62, openspec 62, superpowers 70 to 72, mattpocock 52 to 55 on the
+same re-judged runs. The notes name the same fault for both: "layer-by-layer
+(scaffold, models, store, cache, limiter, retry, and only then the client in task
+7)". Every other scenario stayed within drift across all five ni versions. The
+item therefore separates layered from sliced plans by the same author, not ni
+from the other plugins; the slice rule (b149e13) is what moved ni from 62 to 84.
+
+Rubric v2.2 (2026-10-19, criteria files only, judge prompt unchanged): build-small
+and ported-build gain item 6, **Autonomy**. Evidence: in run-20261018-181207 and
+run-20261019-095458 ni closed 4 of 6 build trials with "I haven't committed
+anything, say if you want those". The sentence carries no `❓` marker, so the
+simulator never replied, `user_turns` stayed 0, and no item scored the deferred
+step; a plugin that asks politely at the end beat one that asks mid-task. The
+item scores a closing offer as low as a mid-task question and exempts a named
+blocker. Expected direction: ni-shaped (ni adopted the unconditional headless
+commit at ca4564e the same day), disclosed in adrs/scenario-matrix.md. Build
+scores before and after v2.2 are not comparable on agent_executability.
+
+v2.2 clarification (2026-10-20, after run-20261020-092358): the judge docked a
+committed PLAN.md as "an extra artifact" in run-20261019-193123 and an untracked
+one as "left uncommitted" in run-20261020-092358, for the same arm and the same
+file. Neither criteria file scores the plan file's git status, so both build
+criteria now say so in one sentence; every arm leaves its notes untracked, so the
+line is neutral. Same run, plan-complex: ni asked "say if you want it committed"
+about the plan commit in 2 of 3 trials; the `❓` marker fired, the simulator
+answered "your call", and the cost of those trials doubled (0.814 and 1.267 USD
+against 0.404 to 0.455). plan-complex has no autonomy item; the cost column
+carries the penalty on its own.
+
 ## `needs_user_reply` heuristic — ONE fix, frozen
 
 Run 1 evidence: the superpowers arm ended with a genuine question
@@ -45,6 +111,18 @@ you want? Once you've reviewed it, choose…") is not detected. The trial still
 completes and grades as-is, which is the designed fallback; the limitation is
 disclosed here rather than reopening the frozen heuristic.
 
+Second fix (2026-10-16, fifth arm, reopened on new evidence): the mattpocock arm's
+grilling round numbers every question under the "❓" marker, answers each with a
+"➡️" recommendation, and closes with a sentence ("Once you've answered, I'll
+check…"). No line in the last three paragraphs ends with "?", so run-20261016-135819
+scored user_turns=0, no artifact, a harness-caused fail; run-20261016-135318 passed
+only because its last question happened to sit inside the window. Rule added in
+`needs_user_reply`: a line headed by "❓" anywhere in the message counts as awaiting
+the user. Replayed over all 15 first turns of the three fifth-arm smoke runs: the
+only verdict that changes is 135819/mattpocock (False → True); every other arm and
+run keeps its verdict. Two unit tests cover the round-with-closing-line case and a
+"❓" inside prose (no reply). Frozen again.
+
 ## Simulator briefs — ONE fix, frozen
 
 Run 2's single simulator exchange (superpowers): reply "Plan approved. your call,
@@ -63,6 +141,39 @@ Fix (single pass, plan-family briefs): the approval rule in
 that approval closes the task ("never ask for implementation now; it happens
 later, outside this session"). Run 3 is archived under `.reports/calibration-run3/`.
 Frozen.
+
+Second fix (2026-10-18, reopened on new evidence): run-20261018-070444
+plan-complex/superpowers. The subject ended turn 1 with its execution-approach
+gate; the simulator approved per the brief, answered the uncovered questions with
+the fallback, then appended "Start with Task 1." Turn 2 became a subagent-driven
+implementation (16 Agent launches, a `.worktrees/` checkout) and was killed at the
+1200 s trial budget: indeterminate, and the killed turn's spend is not in the
+total. The brief fix closed "go ahead with implementation" but not "start with
+task N". Rule added to `STANDING_RULES` in `harness/simulator.py`: never tell the
+assistant to start, implement, execute, or proceed with any task or step unless
+the brief explicitly says so; when the brief says the work happens later, approve
+and stop. Replayed the saved gate message through the simulator three times with
+the new rule (haiku-4-5, 0.006 to 0.013 USD each): replies approve, answer the
+TTL and per-credential facts from the brief, send the fallback for the uncovered
+questions and for the execution approach, and none instructs the assistant to
+start or implement anything ("Task is complete" in one). Frozen again.
+
+Third fix (2026-10-18, same run, trial 3 of the same cell): the simulator gave
+no "Start with" instruction but answered the superpowers execution gate
+("subagent-driven or native?") with the fallback "your call, decide and
+continue" and omitted "task is complete"; superpowers then built the whole
+library natively (36 files) and was killed at 1200 s. Trial 2 of the cell got
+"Task is complete" and the arm stopped: that phrase is what closes the gate.
+Rule added to `STANDING_RULES`: when the brief says the work happens later, an
+execution question is not a brief gap; answer that implementation is outside
+this session and the task ends with the approved plan; never pick an approach.
+Replay of the trial-3 gate, Haiku 4.5 with the new rule: 3/3 say "Task is
+complete", 2/3 still add "execution approach: your call". Same prompt on
+`claude-haiku-5-5`: 3/3 decline execution explicitly ("no execution approach is
+needed here", "Don't start any tasks") and keep the fallback for the brief gaps;
+0.016 USD per reply after the first (0.13 USD, cache creation). Simulator model
+switched to `claude-haiku-5-5`; the 2.1.285 CLI logs `unrecognized_model` on
+stderr and serves it. Frozen again.
 
 ## ni arm terse proof (deferred from task 2)
 
@@ -94,6 +205,15 @@ the level banner comes from the state-file hook and was injected regardless.
 4. **Judge wiring** — judging was not invoked by any script; added
    `harness.judge` CLI + `scripts/judge.sh`, called from `run.sh` after smoke and
    matrix (cost-guard partial exit still judges completed trials).
+5. **Repo-local git identity** — 12 of 105 trials in run-20261018-095422 failed a
+   plain `git commit` with "Author identity unknown"; only committing arms paid for
+   it. Fix: `_prepare_workspace` sets `user.name` and `user.email` in the workspace
+   repository, identical for every arm.
+6. **Fixture `.gitignore`** — the two build fixtures shipped none, so every commit an
+   arm made under rubric v2.1 carried `__pycache__/*.pyc` and the judge docked it
+   (run-20261018-181207 and run-20261019-095458, every ni commit). Fix: both fixtures
+   ship a `.gitignore` for `__pycache__/`, `*.pyc`, and `.pytest_cache/`, copied into
+   the workspace like any fixture file. Applies to every arm from the next run.
 
 ## Recorded spend (NFR2)
 
