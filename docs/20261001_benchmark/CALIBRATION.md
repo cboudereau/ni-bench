@@ -78,6 +78,17 @@ blocker. Expected direction: ni-shaped (ni adopted the unconditional headless
 commit at ca4564e the same day), disclosed in adrs/scenario-matrix.md. Build
 scores before and after v2.2 are not comparable on agent_executability.
 
+v2.2 clarification (2026-10-20, after run-20261020-092358): the judge docked a
+committed PLAN.md as "an extra artifact" in run-20261019-193123 and an untracked
+one as "left uncommitted" in run-20261020-092358, for the same arm and the same
+file. Neither criteria file scores the plan file's git status, so both build
+criteria now say so in one sentence; every arm leaves its notes untracked, so the
+line is neutral. Same run, plan-complex: ni asked "say if you want it committed"
+about the plan commit in 2 of 3 trials; the `❓` marker fired, the simulator
+answered "your call", and the cost of those trials doubled (0.814 and 1.267 USD
+against 0.404 to 0.455). plan-complex has no autonomy item; the cost column
+carries the penalty on its own.
+
 ## `needs_user_reply` heuristic — ONE fix, frozen
 
 Run 1 evidence: the superpowers arm ended with a genuine question

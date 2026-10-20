@@ -29,5 +29,8 @@ Score:
    scores low on this item, the same as a mid-task question would; a genuine
    blocker named with its reason is not.
 
+A plan, notes, or tracker file the arm wrote is a process artifact: its git
+status (committed, staged, or untracked) is not scored under any item.
+
 Deterministic outcome comes from the post-check (visible suite plus hidden
 planted-defect checks); this rubric grades process and spec discipline.
